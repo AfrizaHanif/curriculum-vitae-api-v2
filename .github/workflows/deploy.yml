@@ -1,0 +1,280 @@
+name: Deploy to Hostinger
+
+on:
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+    inputs:
+      run_seeders:
+        description: 'Run database seeders (php artisan db:seed --force)?'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Run Automated Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Setup Application
+        run: composer setup
+
+      - name: Run CI Checks & Tests
+        run: composer ci:check
+
+  deploy:
+    name: Build & Deploy
+    needs: [test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Composer Dependencies (Production)
+        run: |
+          composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
+
+      - name: Prepare Build Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Install NPM Dependencies & Build Assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Clean Temporary Build Files
+        run: |
+          rm -f .env
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HOSTINGER_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT || '65002' }} -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Put Application in Maintenance Mode
+        env:
+          HOST: ${{ secrets.HOSTINGER_HOST }}
+          USER: ${{ secrets.HOSTINGER_USER }}
+          PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+          REMOTE_PATH: ${{ secrets.HOSTINGER_REMOTE_PATH }}
+        run: |
+          ssh -i ~/.ssh/id_rsa -p "$PORT" -o StrictHostKeyChecking=no "$USER@$HOST" "
+            mkdir -p '$REMOTE_PATH'
+            cd '$REMOTE_PATH'
+            if [ -f artisan ]; then
+              php artisan down --render='errors::503' --retry=15 || true
+            fi
+          "
+
+      - name: Deploy Files via Rsync
+        env:
+          HOST: ${{ secrets.HOSTINGER_HOST }}
+          USER: ${{ secrets.HOSTINGER_USER }}
+          PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+          REMOTE_PATH: ${{ secrets.HOSTINGER_REMOTE_PATH }}
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_rsa -p $PORT -o StrictHostKeyChecking=no" \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='node_modules/' \
+            --exclude='tests/' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='storage/app/public/*' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='storage/logs/*' \
+            ./ "$USER@$HOST:$REMOTE_PATH/"
+
+      - name: Execute Post-Deployment Commands
+        env:
+          HOST: ${{ secrets.HOSTINGER_HOST }}
+          USER: ${{ secrets.HOSTINGER_USER }}
+          PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+          REMOTE_PATH: ${{ secrets.HOSTINGER_REMOTE_PATH }}
+          RUN_SEEDERS: ${{ github.event.inputs.run_seeders || 'false' }}
+        run: |
+          ssh -i ~/.ssh/id_rsa -p "$PORT" -o StrictHostKeyChecking=no "$USER@$HOST" "
+            set -e
+            cd '$REMOTE_PATH'
+
+            # Check if remote .env exists
+            if [ ! -f .env ]; then
+              echo '⚠️ Warning: .env file does not exist on server! Copying .env.example...'
+              cp .env.example .env
+              php artisan key:generate --force
+              echo '⚠️ Generated a new .env. Please configure database credentials in Hostinger File Manager/SSH!'
+            fi
+
+            # Ensure required storage and cache directories exist with correct permissions
+            mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/public bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
+
+            # Link storage
+            php artisan storage:link --force || true
+
+            # Run database migrations
+            php artisan migrate --force
+
+            # Run database seeders if manually requested
+            if [ '$RUN_SEEDERS' = 'true' ]; then
+              echo '🌱 Running database seeders...'
+              php artisan db:seed --force
+            fi
+
+            # Restart queue workers if applicable
+            php artisan queue:restart || true
+
+            # Optimize cache for production
+            php artisan optimize:clear
+            php artisan optimize
+
+            # Bring application out of maintenance mode
+            php artisan up || true
+
+            # Force Hostinger LiteSpeed web server to reload PHP workers and OPcache
+            touch public/.htaccess
+          "
+
+      - name: Smoke Test (Health Check)
+        run: |
+          TARGET_URL="${{ secrets.APP_URL || 'https://api.yoursite.com' }}"
+          echo "Verifying application health at ${TARGET_URL}/up..."
+          curl --fail --retry 3 --retry-delay 5 "${TARGET_URL}/up" || echo "Smoke test completed with non-fatal status (check APP_URL if custom domain is used)"
+
+  notify:
+    name: Send Notification
+    needs: [test, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Dispatch Notifications
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_MSG: ${{ github.event.head_commit.message || 'Manual run' }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          REPO: ${{ github.repository }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          if [ "$TEST_RESULT" != "success" ]; then
+            EMOJI="❌"
+            COLOR=15158332 # Red
+            SLACK_COLOR="danger"
+            STATUS_TEXT="Tests Failed (Deploy Aborted)"
+          elif [ "$DEPLOY_RESULT" = "success" ]; then
+            EMOJI="✅"
+            COLOR=3066993 # Green
+            SLACK_COLOR="good"
+            STATUS_TEXT="Deployment Succeeded"
+          else
+            EMOJI="❌"
+            COLOR=15158332 # Red
+            SLACK_COLOR="danger"
+            STATUS_TEXT="Deployment Failed"
+          fi
+
+          SHORT_SHA=$(echo "$COMMIT_SHA" | cut -c1-7)
+          FIRST_LINE_MSG=$(echo "$COMMIT_MSG" | head -n 1 | tr '"' "'")
+
+          # 1. Telegram Notification
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+            echo "Sending Telegram notification..."
+            TG_TEXT="${EMOJI} *${STATUS_TEXT}*%0A%0A*Repo:* \`${REPO}\`%0A*Author:* ${ACTOR}%0A*Commit:* [${SHORT_SHA}](${RUN_URL}): ${FIRST_LINE_MSG}%0A[View Action Run](${RUN_URL})"
+            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d "chat_id=${TELEGRAM_CHAT_ID}" \
+              -d "text=${TG_TEXT}" \
+              -d "parse_mode=Markdown" > /dev/null || echo "Failed to send Telegram notification"
+          fi
+
+          # 2. Discord Notification
+          if [ -n "$DISCORD_WEBHOOK" ]; then
+            echo "Sending Discord notification..."
+            jq -n \
+              --arg title "${EMOJI} ${STATUS_TEXT}" \
+              --arg url "$RUN_URL" \
+              --argjson color "$COLOR" \
+              --arg repo "$REPO" \
+              --arg actor "$ACTOR" \
+              --arg commit "[\`${SHORT_SHA}\`](${RUN_URL}) - ${FIRST_LINE_MSG}" \
+              '{
+                embeds: [{
+                  title: $title,
+                  url: $url,
+                  color: $color,
+                  fields: [
+                    {name: "Repository", value: $repo, inline: true},
+                    {name: "Author", value: $actor, inline: true},
+                    {name: "Commit", value: $commit, inline: false}
+                  ],
+                  footer: {text: "Hostinger Deployment Pipeline"}
+                }]
+              }' | curl -s -H "Content-Type: application/json" -X POST -d @- "$DISCORD_WEBHOOK" > /dev/null || echo "Failed to send Discord notification"
+          fi
+
+          # 3. Slack Notification
+          if [ -n "$SLACK_WEBHOOK" ]; then
+            echo "Sending Slack notification..."
+            jq -n \
+              --arg color "$SLACK_COLOR" \
+              --arg title "${EMOJI} ${STATUS_TEXT}: ${REPO}" \
+              --arg url "$RUN_URL" \
+              --arg text "*Author:* ${ACTOR}\n*Commit:* <${RUN_URL}|${SHORT_SHA}> - ${FIRST_LINE_MSG}" \
+              '{
+                attachments: [{
+                  color: $color,
+                  title: $title,
+                  title_link: $url,
+                  text: $text
+                }]
+              }' | curl -s -H "Content-Type: application/json" -X POST -d @- "$SLACK_WEBHOOK" > /dev/null || echo "Failed to send Slack notification"
+          fi
+

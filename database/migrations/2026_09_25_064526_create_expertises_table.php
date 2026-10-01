@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('expertises', function (Blueprint $table) {
+            $table->char('id', length: 9)->primary();
+            $table->char('profile_id', length: 9);
+            $table->string('title');
+            $table->json('description')->nullable();
+            $table->string('icon')->nullable();
+            $table->softDeletes();
+            $table->timestamps();
+
+            $table->foreign('profile_id')->references('id')->on('profiles')->onDelete('cascade');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('expertises');
+    }
+};
