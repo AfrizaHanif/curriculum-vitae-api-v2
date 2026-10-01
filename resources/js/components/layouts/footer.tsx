@@ -1,7 +1,7 @@
-import type { SocialItem } from "@/types";
-import { usePage } from "@inertiajs/react";
-import logoWhite from "../../assets/images/logo-only-white.png";
-import "./footer.css";
+import type { SocialItem } from '@/types';
+import { usePage } from '@inertiajs/react';
+import logoWhite from '../../assets/images/logo-only-white.png';
+import './footer.css';
 
 interface FooterProps {
     appName?: string;
@@ -12,7 +12,7 @@ interface FooterProps {
 }
 
 export default function Footer({
-    appName = "Curriculum Vitae API",
+    appName = 'Curriculum Vitae API',
     fullName: propFullName,
     laravelVersion,
     phpVersion,
@@ -24,7 +24,7 @@ export default function Footer({
     const socials = propSocials ?? pageSocials;
 
     const getIconClass = (icon: string): string => {
-        if (icon.startsWith("bi-") || icon.startsWith("bi ")) {
+        if (icon.startsWith('bi-') || icon.startsWith('bi ')) {
             return icon;
         }
         return `bi-${icon}`;

@@ -1,7 +1,7 @@
-import { Link, usePage } from "@inertiajs/react";
-import React, { useEffect, useRef, useState } from "react";
-import logoWhite from "../../assets/images/logo-only-white.png";
-import "./header.css";
+import { Link, usePage } from '@inertiajs/react';
+import React, { useEffect, useRef, useState } from 'react';
+import logoWhite from '../../assets/images/logo-only-white.png';
+import './header.css';
 
 interface HeaderProps {
     appName?: string;
@@ -9,7 +9,7 @@ interface HeaderProps {
 }
 
 export default function Header({
-    appName = "Curriculum Vitae API",
+    appName = 'Curriculum Vitae API',
     fullName: propFullName,
 }: HeaderProps) {
     const page = usePage();
@@ -45,16 +45,16 @@ export default function Header({
             }
         };
 
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     return (
         <div
             ref={headerRef}
             className={`smart-header fixed-top ${
-                isVisible ? "header-visible" : "header-hidden"
-            } ${isScrolled ? "shadow-sm scrolled" : ""}`}
+                isVisible ? 'header-visible' : 'header-hidden'
+            } ${isScrolled ? 'shadow-sm scrolled' : ''}`}
         >
             <header className="container d-flex align-items-center justify-content-between py-3">
                 <Link
@@ -92,7 +92,7 @@ export default function Header({
                     >
                         <span
                             className="spinner-grow spinner-grow-sm text-success"
-                            style={{ width: "0.7rem", height: "0.7rem" }}
+                            style={{ width: '0.7rem', height: '0.7rem' }}
                         ></span>
                         Check Health Status
                     </a>
