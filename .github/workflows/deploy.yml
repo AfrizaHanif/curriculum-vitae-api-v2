@@ -12,7 +12,7 @@ on:
                 type: boolean
                 default: false
             factory_reset:
-                description: "⚠️ DANGER: Wipe database and re-seed from scratch (migrate:fresh --seed --force)?"
+                description: "⚠️ DANGER: Wipe database and re-seed from scratch (migrate:fresh --seed)?"
                 required: false
                 type: boolean
                 default: false
@@ -167,7 +167,7 @@ jobs:
                     # Database handling: Factory reset vs standard migration
                     if [ '$FACTORY_RESET' = 'true' ]; then
                       echo '⚠️ DANGER: Resetting database to factory default (migrate:fresh --seed)...'
-                      php artisan migrate:fresh --seed --force
+                      APP_ENV=local php artisan migrate:fresh --seed --force
                     else
                       # Run database migrations
                       php artisan migrate --force
