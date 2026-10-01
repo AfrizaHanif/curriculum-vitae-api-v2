@@ -118,29 +118,7 @@ class FileObserver
 
         foreach ($paths as $path) {
             if (is_string($path) && ! filter_var($path, FILTER_VALIDATE_URL)) {
-                $directory = dirname($path);
-                Storage::disk('public')->delete($path);
-
-                if ($directory !== '.') {
-                    $this->deleteDirectoryIfEmpty($directory);
-                }
-            }
-        }
-    }
-
-    /**
-     * Recursively delete directories if they are empty.
-     */
-    private function deleteDirectoryIfEmpty(string $directory): void
-    {
-        $disk = Storage::disk('public');
-
-        if ($disk->exists($directory) && empty($disk->files($directory)) && empty($disk->directories($directory))) {
-            $disk->deleteDirectory($directory);
-
-            $parent = dirname($directory);
-            if ($parent !== '.') {
-                $this->deleteDirectoryIfEmpty($parent);
+                Storage::disk('public')->delete(ltrim($path, '/'));
             }
         }
     }

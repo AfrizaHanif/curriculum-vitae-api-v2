@@ -150,3 +150,29 @@ test('user cannot delete another user feature', function () {
     $response = $this->deleteJson("/api/features/{$otherFeature->id}");
     $response->assertForbidden();
 });
+
+test('user cannot create a feature for another user project or invalid type', function () {
+    $otherUser = User::factory()->create();
+    $otherProfile = Profile::factory()->for($otherUser)->create();
+    $otherProject = Project::factory()->for($otherProfile)->create();
+
+    Sanctum::actingAs($this->user);
+
+    // 1. Invalid parent ownership
+    $response = $this->postJson('/api/features', [
+        'featureable_type' => Project::class,
+        'featureable_id' => $otherProject->id,
+        'title' => 'Sneaky Feature',
+    ]);
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['featureable_id']);
+
+    // 2. Disallowed polymorphic type
+    $responseInvalidType = $this->postJson('/api/features', [
+        'featureable_type' => User::class,
+        'featureable_id' => (string) $this->user->id,
+        'title' => 'Invalid Type Feature',
+    ]);
+    $responseInvalidType->assertUnprocessable()
+        ->assertJsonValidationErrors(['featureable_type']);
+});

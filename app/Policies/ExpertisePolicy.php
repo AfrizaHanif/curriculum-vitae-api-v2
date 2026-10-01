@@ -36,7 +36,7 @@ class ExpertisePolicy
      */
     public function update(User $user, Expertise $expertise): bool
     {
-        return $user->id === $expertise->profile?->user_id;
+        return $user->profile?->id !== null && $expertise->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class ExpertisePolicy
      */
     public function delete(User $user, Expertise $expertise): bool
     {
-        return $user->id === $expertise->profile?->user_id;
+        return $user->profile?->id !== null && $expertise->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class ExpertisePolicy
      */
     public function restore(User $user, Expertise $expertise): bool
     {
-        return $user->id === $expertise->profile?->user_id;
+        return $user->profile?->id !== null && $expertise->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class ExpertisePolicy
      */
     public function forceDelete(User $user, Expertise $expertise): bool
     {
-        return $user->id === $expertise->profile?->user_id;
+        return $user->profile?->id !== null && $expertise->profile_id === $user->profile->id;
     }
 }

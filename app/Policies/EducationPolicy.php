@@ -36,7 +36,7 @@ class EducationPolicy
      */
     public function update(User $user, Education $education): bool
     {
-        return $user->id === $education->profile?->user_id;
+        return $user->profile?->id !== null && $education->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class EducationPolicy
      */
     public function delete(User $user, Education $education): bool
     {
-        return $user->id === $education->profile?->user_id;
+        return $user->profile?->id !== null && $education->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class EducationPolicy
      */
     public function restore(User $user, Education $education): bool
     {
-        return $user->id === $education->profile?->user_id;
+        return $user->profile?->id !== null && $education->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class EducationPolicy
      */
     public function forceDelete(User $user, Education $education): bool
     {
-        return $user->id === $education->profile?->user_id;
+        return $user->profile?->id !== null && $education->profile_id === $user->profile->id;
     }
 }

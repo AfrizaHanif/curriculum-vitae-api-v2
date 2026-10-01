@@ -36,7 +36,7 @@ class PostPolicy
      */
     public function update(User $user, Post $post): bool
     {
-        return $user->id === $post->profile?->user_id;
+        return $user->profile?->id !== null && $post->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class PostPolicy
      */
     public function delete(User $user, Post $post): bool
     {
-        return $user->id === $post->profile?->user_id;
+        return $user->profile?->id !== null && $post->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class PostPolicy
      */
     public function restore(User $user, Post $post): bool
     {
-        return $user->id === $post->profile?->user_id;
+        return $user->profile?->id !== null && $post->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class PostPolicy
      */
     public function forceDelete(User $user, Post $post): bool
     {
-        return $user->id === $post->profile?->user_id;
+        return $user->profile?->id !== null && $post->profile_id === $user->profile->id;
     }
 }

@@ -37,7 +37,7 @@ trait HandlesFileUploads
                     ? Str::slug($customFilename)
                     : preg_replace('/[^\w\s\.-]/u', '', trim($customFilename));
 
-                $filename = $baseName.'.'.$file->getClientOriginalExtension();
+                $filename = $baseName.'.'.$file->extension();
             } else {
                 $filename = $file->hashName();
             }
@@ -47,7 +47,7 @@ trait HandlesFileUploads
             $cleanPath = $path ? ltrim($path, '/') : null;
             $cleanOldPath = $oldPath ? ltrim($oldPath, '/') : null;
 
-            if ($cleanPath && $cleanOldPath && $cleanPath !== $cleanOldPath && Storage::disk($disk)->exists($cleanOldPath)) {
+            if ($cleanPath && $cleanOldPath && $cleanPath !== $cleanOldPath) {
                 Storage::disk($disk)->delete($cleanOldPath);
             }
 
@@ -85,7 +85,7 @@ trait HandlesFileUploads
 
             foreach ($fileArray as $file) {
                 $filename = $baseCustomFilename
-                    ? Str::slug($baseCustomFilename.'_'.sprintf('%03d', $index)).'.'.$file->getClientOriginalExtension()
+                    ? Str::slug($baseCustomFilename.'_'.sprintf('%03d', $index)).'.'.$file->extension()
                     : $file->hashName();
                 $stored = $file->storeAs($folder, $filename, $disk);
                 $paths[] = $stored;
@@ -97,7 +97,7 @@ trait HandlesFileUploads
                 $cleanNewPaths = array_map(fn ($p) => ltrim($p, '/'), $paths);
                 foreach ($oldPaths as $oldPath) {
                     $cleanOld = ltrim($oldPath, '/');
-                    if (! in_array($cleanOld, $cleanNewPaths) && Storage::disk($disk)->exists($cleanOld)) {
+                    if (! in_array($cleanOld, $cleanNewPaths)) {
                         Storage::disk($disk)->delete($cleanOld);
                     }
                 }
@@ -176,9 +176,7 @@ trait HandlesFileUploads
             }
 
             foreach ($deletedPaths as $delPath) {
-                if (Storage::disk($disk)->exists($delPath)) {
-                    Storage::disk($disk)->delete($delPath);
-                }
+                Storage::disk($disk)->delete($delPath);
             }
 
             $newPaths = $this->uploadFiles(

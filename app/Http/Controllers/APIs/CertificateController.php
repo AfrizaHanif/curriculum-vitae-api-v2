@@ -64,7 +64,7 @@ class CertificateController extends Controller implements HasMiddleware
 
         // Upload file if exist
         if ($request->hasFile('file')) {
-            $ext = strtolower($request->file('file')->getClientOriginalExtension());
+            $ext = strtolower($request->file('file')->extension());
             $folder = ($ext === 'pdf') ? Certificate::STORAGE_PDF_PATH : Certificate::STORAGE_IMAGE_PATH;
             $prefix = ($ext === 'pdf') ? 'DOC' : 'IMG';
             $customName = $prefix.'_'.time();
@@ -98,7 +98,7 @@ class CertificateController extends Controller implements HasMiddleware
         // Upload file if exist
         if ($request->hasFile('file')) {
             $idNum = preg_replace('/[^0-9]/', '', (string) $certificate->id);
-            $ext = strtolower($request->file('file')->getClientOriginalExtension());
+            $ext = strtolower($request->file('file')->extension());
             $folder = ($ext === 'pdf') ? Certificate::STORAGE_PDF_PATH : Certificate::STORAGE_IMAGE_PATH;
             $customName = ($ext === 'pdf') ? 'DOC-'.$idNum.'_'.time() : 'IMG-'.$idNum.'_'.time();
 

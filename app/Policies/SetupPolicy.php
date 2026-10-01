@@ -36,7 +36,7 @@ class SetupPolicy
      */
     public function update(User $user, Setup $setup): bool
     {
-        return $user->id === $setup->profile?->user_id;
+        return $user->profile?->id !== null && $setup->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class SetupPolicy
      */
     public function delete(User $user, Setup $setup): bool
     {
-        return $user->id === $setup->profile?->user_id;
+        return $user->profile?->id !== null && $setup->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class SetupPolicy
      */
     public function restore(User $user, Setup $setup): bool
     {
-        return $user->id === $setup->profile?->user_id;
+        return $user->profile?->id !== null && $setup->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class SetupPolicy
      */
     public function forceDelete(User $user, Setup $setup): bool
     {
-        return $user->id === $setup->profile?->user_id;
+        return $user->profile?->id !== null && $setup->profile_id === $user->profile->id;
     }
 }

@@ -20,7 +20,7 @@ class CertificatePolicy
      */
     public function view(User $user, Certificate $certificate): bool
     {
-        return $user->id === $certificate->profile?->user_id;
+        return $user->profile?->id !== null && $certificate->profile_id === $user->profile->id;
     }
 
     /**
@@ -36,7 +36,7 @@ class CertificatePolicy
      */
     public function update(User $user, Certificate $certificate): bool
     {
-        return $user->id === $certificate->profile?->user_id;
+        return $user->profile?->id !== null && $certificate->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class CertificatePolicy
      */
     public function delete(User $user, Certificate $certificate): bool
     {
-        return $user->id === $certificate->profile?->user_id;
+        return $user->profile?->id !== null && $certificate->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class CertificatePolicy
      */
     public function restore(User $user, Certificate $certificate): bool
     {
-        return $user->id === $certificate->profile?->user_id;
+        return $user->profile?->id !== null && $certificate->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class CertificatePolicy
      */
     public function forceDelete(User $user, Certificate $certificate): bool
     {
-        return $user->id === $certificate->profile?->user_id;
+        return $user->profile?->id !== null && $certificate->profile_id === $user->profile->id;
     }
 }

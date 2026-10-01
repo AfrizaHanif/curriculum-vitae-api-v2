@@ -34,7 +34,9 @@ trait HandlesResourceFiltering
 
         // Client per_page query parameter overrides default $perPage
         $requestedPerPage = $request->query('per_page');
-        $effectivePerPage = $requestedPerPage !== null ? (int) $requestedPerPage : $perPage;
+        $effectivePerPage = $requestedPerPage !== null
+            ? max(1, min((int) $requestedPerPage, 100))
+            : ($perPage ?? 15);
 
         // Return paginated results if perPage is provided or if pagination is requested via query string
         if ($effectivePerPage !== null || $request->has('page')) {

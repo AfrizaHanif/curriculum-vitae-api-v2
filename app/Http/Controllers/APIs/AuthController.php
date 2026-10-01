@@ -36,6 +36,9 @@ class AuthController extends Controller
         $user->loadMissing('profile');
         $deviceName = $request->input('device_name', 'auth_token');
 
+        // Prune previous tokens with the same device name to avoid token accumulation
+        $user->tokens()->where('name', $deviceName)->delete();
+
         return response()->json([
             'status' => 'success',
             'token' => $user->createToken($deviceName)->plainTextToken,

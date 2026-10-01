@@ -36,7 +36,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        return $user->id === $project->profile?->user_id;
+        return $user->profile?->id !== null && $project->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        return $user->id === $project->profile?->user_id;
+        return $user->profile?->id !== null && $project->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class ProjectPolicy
      */
     public function restore(User $user, Project $project): bool
     {
-        return $user->id === $project->profile?->user_id;
+        return $user->profile?->id !== null && $project->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class ProjectPolicy
      */
     public function forceDelete(User $user, Project $project): bool
     {
-        return $user->id === $project->profile?->user_id;
+        return $user->profile?->id !== null && $project->profile_id === $user->profile->id;
     }
 }

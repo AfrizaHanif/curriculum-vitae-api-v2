@@ -36,7 +36,7 @@ class CaseStudyPolicy
      */
     public function update(User $user, CaseStudy $caseStudy): bool
     {
-        return $user->id === $caseStudy->portfolio?->profile?->user_id;
+        return $user->profile?->id !== null && $caseStudy->portfolio?->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class CaseStudyPolicy
      */
     public function delete(User $user, CaseStudy $caseStudy): bool
     {
-        return $user->id === $caseStudy->portfolio?->profile?->user_id;
+        return $user->profile?->id !== null && $caseStudy->portfolio?->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class CaseStudyPolicy
      */
     public function restore(User $user, CaseStudy $caseStudy): bool
     {
-        return $user->id === $caseStudy->portfolio?->profile?->user_id;
+        return $user->profile?->id !== null && $caseStudy->portfolio?->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class CaseStudyPolicy
      */
     public function forceDelete(User $user, CaseStudy $caseStudy): bool
     {
-        return $user->id === $caseStudy->portfolio?->profile?->user_id;
+        return $user->profile?->id !== null && $caseStudy->portfolio?->profile_id === $user->profile->id;
     }
 }

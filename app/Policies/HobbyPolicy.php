@@ -36,7 +36,7 @@ class HobbyPolicy
      */
     public function update(User $user, Hobby $hobby): bool
     {
-        return $user->id === $hobby->profile?->user_id;
+        return $user->profile?->id !== null && $hobby->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class HobbyPolicy
      */
     public function delete(User $user, Hobby $hobby): bool
     {
-        return $user->id === $hobby->profile?->user_id;
+        return $user->profile?->id !== null && $hobby->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class HobbyPolicy
      */
     public function restore(User $user, Hobby $hobby): bool
     {
-        return $user->id === $hobby->profile?->user_id;
+        return $user->profile?->id !== null && $hobby->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class HobbyPolicy
      */
     public function forceDelete(User $user, Hobby $hobby): bool
     {
-        return $user->id === $hobby->profile?->user_id;
+        return $user->profile?->id !== null && $hobby->profile_id === $user->profile->id;
     }
 }

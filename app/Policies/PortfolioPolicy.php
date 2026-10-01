@@ -36,7 +36,7 @@ class PortfolioPolicy
      */
     public function update(User $user, Portfolio $portfolio): bool
     {
-        return $user->id === $portfolio->profile?->user_id;
+        return $user->profile?->id !== null && $portfolio->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class PortfolioPolicy
      */
     public function delete(User $user, Portfolio $portfolio): bool
     {
-        return $user->id === $portfolio->profile?->user_id;
+        return $user->profile?->id !== null && $portfolio->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class PortfolioPolicy
      */
     public function restore(User $user, Portfolio $portfolio): bool
     {
-        return $user->id === $portfolio->profile?->user_id;
+        return $user->profile?->id !== null && $portfolio->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class PortfolioPolicy
      */
     public function forceDelete(User $user, Portfolio $portfolio): bool
     {
-        return $user->id === $portfolio->profile?->user_id;
+        return $user->profile?->id !== null && $portfolio->profile_id === $user->profile->id;
     }
 }

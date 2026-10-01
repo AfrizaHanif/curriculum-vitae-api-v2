@@ -17,10 +17,16 @@ class SetNoCacheHeaders
     {
         $response = $next($request);
 
-        $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
-        $response->headers->set('Pragma', 'no-cache');
-        $response->headers->set('Expires', '0');
-        $response->headers->set('X-LiteSpeed-Cache-Control', 'no-cache');
+        if (! $request->isMethodSafe() || $request->user() !== null) {
+            $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', '0');
+            $response->headers->set('X-LiteSpeed-Cache-Control', 'no-cache');
+        } else {
+            $response->headers->set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+            $response->headers->set('X-LiteSpeed-Cache-Control', 'public, max-age=300');
+        }
+
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
 
         return $response;

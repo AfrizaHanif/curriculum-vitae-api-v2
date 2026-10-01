@@ -36,7 +36,7 @@ class ExperiencePolicy
      */
     public function update(User $user, Experience $experience): bool
     {
-        return $user->id === $experience->profile?->user_id;
+        return $user->profile?->id !== null && $experience->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class ExperiencePolicy
      */
     public function delete(User $user, Experience $experience): bool
     {
-        return $user->id === $experience->profile?->user_id;
+        return $user->profile?->id !== null && $experience->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class ExperiencePolicy
      */
     public function restore(User $user, Experience $experience): bool
     {
-        return $user->id === $experience->profile?->user_id;
+        return $user->profile?->id !== null && $experience->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class ExperiencePolicy
      */
     public function forceDelete(User $user, Experience $experience): bool
     {
-        return $user->id === $experience->profile?->user_id;
+        return $user->profile?->id !== null && $experience->profile_id === $user->profile->id;
     }
 }

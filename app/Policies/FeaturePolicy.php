@@ -36,7 +36,7 @@ class FeaturePolicy
      */
     public function update(User $user, Feature $feature): bool
     {
-        return $user->id === $feature->featureable?->profile?->user_id;
+        return $user->profile?->id !== null && $feature->featureable?->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class FeaturePolicy
      */
     public function delete(User $user, Feature $feature): bool
     {
-        return $user->id === $feature->featureable?->profile?->user_id;
+        return $user->profile?->id !== null && $feature->featureable?->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class FeaturePolicy
      */
     public function restore(User $user, Feature $feature): bool
     {
-        return $user->id === $feature->featureable?->profile?->user_id;
+        return $user->profile?->id !== null && $feature->featureable?->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class FeaturePolicy
      */
     public function forceDelete(User $user, Feature $feature): bool
     {
-        return $user->id === $feature->featureable?->profile?->user_id;
+        return $user->profile?->id !== null && $feature->featureable?->profile_id === $user->profile->id;
     }
 }

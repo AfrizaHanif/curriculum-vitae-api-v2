@@ -36,7 +36,7 @@ class TestimonialPolicy
      */
     public function update(User $user, Testimonial $testimonial): bool
     {
-        return $user->id === $testimonial->profile?->user_id;
+        return $user->profile?->id !== null && $testimonial->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class TestimonialPolicy
      */
     public function delete(User $user, Testimonial $testimonial): bool
     {
-        return $user->id === $testimonial->profile?->user_id;
+        return $user->profile?->id !== null && $testimonial->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class TestimonialPolicy
      */
     public function restore(User $user, Testimonial $testimonial): bool
     {
-        return $user->id === $testimonial->profile?->user_id;
+        return $user->profile?->id !== null && $testimonial->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class TestimonialPolicy
      */
     public function forceDelete(User $user, Testimonial $testimonial): bool
     {
-        return $user->id === $testimonial->profile?->user_id;
+        return $user->profile?->id !== null && $testimonial->profile_id === $user->profile->id;
     }
 }

@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             TimezoneMiddleware::class,
         ]);
+        $middleware->throttleApi();
         $middleware->statefulApi();
         $middleware->api(prepend: [
             SetNoCacheHeaders::class,

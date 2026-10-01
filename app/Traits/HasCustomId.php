@@ -4,6 +4,8 @@ namespace App\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 /**
  * @mixin Model
@@ -37,9 +39,11 @@ trait HasCustomId
         $prefix = property_exists($this, 'idPrefix') ? $this->idPrefix : 'ID-';
         $padding = property_exists($this, 'idPadding') ? $this->idPadding : 3;
 
-        $latest = static::query()
-            ->orderBy($keyName, 'desc')
-            ->first();
+        $query = static::query();
+        if (in_array(SoftDeletes::class, class_uses_recursive(static::class), true)) {
+            $query->withoutGlobalScope(SoftDeletingScope::class);
+        }
+        $latest = $query->orderBy($keyName, 'desc')->first();
 
         $number = 1;
 

@@ -33,7 +33,21 @@ test('guest can view a single profile', function () {
 
     $response->assertOk()
         ->assertJsonPath('data.id', $this->profile->id)
-        ->assertJsonPath('data.fullname', $this->profile->fullname);
+        ->assertJsonPath('data.fullname', $this->profile->fullname)
+        ->assertJsonPath('data.phone', $this->profile->phone)
+        ->assertJsonPath('data.email', $this->profile->email)
+        ->assertJsonPath('data.age', $this->profile->birthday->age)
+        ->assertJsonMissing(['birthday']);
+});
+
+test('authenticated user can view profile with exact birthday included', function () {
+    Sanctum::actingAs($this->user);
+
+    $response = $this->getJson("/api/profiles/{$this->profile->id}");
+
+    $response->assertOk()
+        ->assertJsonPath('data.age', $this->profile->birthday->age)
+        ->assertJsonPath('data.birthday', $this->profile->birthday->toISOString());
 });
 
 test('guest cannot update a profile', function () {

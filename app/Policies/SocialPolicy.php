@@ -36,7 +36,7 @@ class SocialPolicy
      */
     public function update(User $user, Social $social): bool
     {
-        return $user->id === $social->profile?->user_id;
+        return $user->profile?->id !== null && $social->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class SocialPolicy
      */
     public function delete(User $user, Social $social): bool
     {
-        return $user->id === $social->profile?->user_id;
+        return $user->profile?->id !== null && $social->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class SocialPolicy
      */
     public function restore(User $user, Social $social): bool
     {
-        return $user->id === $social->profile?->user_id;
+        return $user->profile?->id !== null && $social->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class SocialPolicy
      */
     public function forceDelete(User $user, Social $social): bool
     {
-        return $user->id === $social->profile?->user_id;
+        return $user->profile?->id !== null && $social->profile_id === $user->profile->id;
     }
 }

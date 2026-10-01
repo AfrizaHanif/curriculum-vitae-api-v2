@@ -20,7 +20,7 @@ class SkillPolicy
      */
     public function view(User $user, Skill $skill): bool
     {
-        return $user->id === $skill->profile->user_id;
+        return $user->profile?->id !== null && $skill->profile_id === $user->profile->id;
     }
 
     /**
@@ -36,7 +36,7 @@ class SkillPolicy
      */
     public function update(User $user, Skill $skill): bool
     {
-        return $user->id === $skill->profile->user_id;
+        return $user->profile?->id !== null && $skill->profile_id === $user->profile->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class SkillPolicy
      */
     public function delete(User $user, Skill $skill): bool
     {
-        return $user->id === $skill->profile->user_id;
+        return $user->profile?->id !== null && $skill->profile_id === $user->profile->id;
     }
 
     /**
@@ -52,7 +52,7 @@ class SkillPolicy
      */
     public function restore(User $user, Skill $skill): bool
     {
-        return $user->id === $skill->profile->user_id;
+        return $user->profile?->id !== null && $skill->profile_id === $user->profile->id;
     }
 
     /**
@@ -60,6 +60,6 @@ class SkillPolicy
      */
     public function forceDelete(User $user, Skill $skill): bool
     {
-        return $user->id === $skill->profile->user_id;
+        return $user->profile?->id !== null && $skill->profile_id === $user->profile->id;
     }
 }

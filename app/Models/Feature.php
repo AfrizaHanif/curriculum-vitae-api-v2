@@ -54,6 +54,6 @@ class Feature extends BaseAPI
      */
     public function featureable(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo()->withTrashed();
     }
 }
