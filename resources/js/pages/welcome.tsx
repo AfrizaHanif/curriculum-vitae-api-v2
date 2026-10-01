@@ -1,7 +1,7 @@
-import Footer from '@/components/layouts/footer';
-import Header from '@/components/layouts/header';
-import { Head } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import Footer from "@/components/layouts/footer";
+import Header from "@/components/layouts/header";
+import { Head } from "@inertiajs/react";
+import { useMemo, useState } from "react";
 
 interface WelcomeProps {
     appName?: string;
@@ -13,21 +13,21 @@ interface EndpointItem {
     name: string;
     path: string;
     description: string;
-    category: 'Profile' | 'Career' | 'Works' | 'Content' | 'Auth';
-    methods: ('GET' | 'POST' | 'PUT' | 'DELETE')[];
-    access: 'public' | 'auth' | 'public-read';
+    category: "Profile" | "Career" | "Works" | "Content" | "Auth";
+    methods: ("GET" | "POST" | "PUT" | "DELETE")[];
+    access: "public" | "auth" | "public-read";
     hasRestore?: boolean;
 }
 
 const ENDPOINTS: EndpointItem[] = [
     {
-        name: 'Authentication Login',
-        path: '/api/login',
+        name: "Authentication Login",
+        path: "/api/login",
         description:
-            'Authenticate and receive a Sanctum API bearer token (rate limited 6 req/min).',
-        category: 'Auth',
-        methods: ['POST'],
-        access: 'public',
+            "Authenticate and receive a Sanctum API bearer token (rate limited 6 req/min).",
+        category: "Auth",
+        methods: ["POST"],
+        access: "public",
     },
     // {
     //     name: "Authenticated User",
@@ -39,171 +39,171 @@ const ENDPOINTS: EndpointItem[] = [
     //     access: "auth",
     // },
     {
-        name: 'Profiles',
-        path: '/api/profiles',
+        name: "Profiles",
+        path: "/api/profiles",
         description:
-            'Core biography, personal statement, contact metadata, and headline information.',
-        category: 'Profile',
-        methods: ['GET', 'PUT'],
-        access: 'public-read',
+            "Core biography, personal statement, contact metadata, and headline information.",
+        category: "Profile",
+        methods: ["GET", "PUT"],
+        access: "public-read",
     },
     {
-        name: 'Skills',
-        path: '/api/skills',
+        name: "Skills",
+        path: "/api/skills",
         description:
-            'Technical and soft skills taxonomy, proficiency metrics, and category tags.',
-        category: 'Career',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Technical and soft skills taxonomy, proficiency metrics, and category tags.",
+        category: "Career",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Experiences',
-        path: '/api/experiences',
+        name: "Experiences",
+        path: "/api/experiences",
         description:
-            'Professional employment timeline, roles, responsibilities, and achievements.',
-        category: 'Career',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Professional employment timeline, roles, responsibilities, and achievements.",
+        category: "Career",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Education',
-        path: '/api/educations',
+        name: "Education",
+        path: "/api/educations",
         description:
-            'Academic background, degrees, certifications, and educational milestones.',
-        category: 'Career',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Academic background, degrees, certifications, and educational milestones.",
+        category: "Career",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Expertises',
-        path: '/api/expertises',
+        name: "Expertises",
+        path: "/api/expertises",
         description:
-            'Domain mastery areas, specialized consulting fields, and core proficiencies.',
-        category: 'Career',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Domain mastery areas, specialized consulting fields, and core proficiencies.",
+        category: "Career",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Certificates',
-        path: '/api/certificates',
+        name: "Certificates",
+        path: "/api/certificates",
         description:
-            'Official credentials, issuing organizations, credentials URLs, and issue dates.',
-        category: 'Career',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Official credentials, issuing organizations, credentials URLs, and issue dates.",
+        category: "Career",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Projects',
-        path: '/api/projects',
+        name: "Projects",
+        path: "/api/projects",
         description:
-            'Showcased applications, client deliverables, tech stacks, and live links.',
-        category: 'Works',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Showcased applications, client deliverables, tech stacks, and live links.",
+        category: "Works",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Portfolios',
-        path: '/api/portfolios',
+        name: "Portfolios",
+        path: "/api/portfolios",
         description:
-            'Curated creative and engineering highlights with media assets and screenshots.',
-        category: 'Works',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Curated creative and engineering highlights with media assets and screenshots.",
+        category: "Works",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Case Studies',
-        path: '/api/case-studies',
+        name: "Case Studies",
+        path: "/api/case-studies",
         description:
-            'In-depth problem-solution architectural breakdowns and impact metrics.',
-        category: 'Works',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "In-depth problem-solution architectural breakdowns and impact metrics.",
+        category: "Works",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Posts / Articles',
-        path: '/api/posts',
+        name: "Posts / Articles",
+        path: "/api/posts",
         description:
-            'Technical blog writeups, engineering notes, and published thought pieces.',
-        category: 'Content',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Technical blog writeups, engineering notes, and published thought pieces.",
+        category: "Content",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Testimonials',
-        path: '/api/testimonials',
+        name: "Testimonials",
+        path: "/api/testimonials",
         description:
-            'Client endorsements, colleague feedback, and verified recommendations.',
-        category: 'Content',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Client endorsements, colleague feedback, and verified recommendations.",
+        category: "Content",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Social Links',
-        path: '/api/socials',
+        name: "Social Links",
+        path: "/api/socials",
         description:
-            'Social networking handles, developer links (GitHub, LinkedIn), and URLs.',
-        category: 'Profile',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Social networking handles, developer links (GitHub, LinkedIn), and URLs.",
+        category: "Profile",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Workstation Setup',
-        path: '/api/setups',
+        name: "Workstation Setup",
+        path: "/api/setups",
         description:
-            'Hardware gear, peripherals, development tooling, and workstation specs.',
-        category: 'Profile',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Hardware gear, peripherals, development tooling, and workstation specs.",
+        category: "Profile",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'Hobbies & Interests',
-        path: '/api/hobbies',
+        name: "Hobbies & Interests",
+        path: "/api/hobbies",
         description:
-            'Personal activities, creative pursuits, and extracurricular interests.',
-        category: 'Profile',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Personal activities, creative pursuits, and extracurricular interests.",
+        category: "Profile",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
     {
-        name: 'System Features',
-        path: '/api/features',
+        name: "System Features",
+        path: "/api/features",
         description:
-            'Feature flags, highlighted portfolio sections, and configuration items.',
-        category: 'Content',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        access: 'public-read',
+            "Feature flags, highlighted portfolio sections, and configuration items.",
+        category: "Content",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        access: "public-read",
         hasRestore: true,
     },
 ];
 
 export default function Welcome({
-    appName = 'Curriculum Vitae API',
-    laravelVersion = '11.x',
-    phpVersion = '8.3',
+    appName = "Curriculum Vitae API",
+    laravelVersion = "11.x",
+    phpVersion = "8.3",
 }: WelcomeProps) {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState<string>('All');
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<string>("All");
     const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null);
 
-    const categories = ['All', 'Auth', 'Profile', 'Career', 'Works', 'Content'];
+    const categories = ["All", "Auth", "Profile", "Career", "Works", "Content"];
 
     const filteredEndpoints = useMemo(() => {
         return ENDPOINTS.filter((endpoint) => {
             const matchesCat =
-                selectedCategory === 'All' ||
+                selectedCategory === "All" ||
                 endpoint.category === selectedCategory;
             const matchesSearch =
                 endpoint.path
@@ -226,19 +226,71 @@ export default function Welcome({
     };
 
     const getOrigin = () => {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
             return window.location.origin;
         }
-        return 'https://api.yourdomain.com';
+        return "https://api.yourdomain.com";
     };
 
     return (
         <>
-            <Head title={`CV API`} />
+            <Head title={`CV API | Muhammad Afriza Hanif`}>
+                <meta
+                    name="description"
+                    content="Production-Ready RESTful API engine providing structured data for developer portfolios, work experience, technical skills, and career credentials."
+                />
+                <meta name="author" content="Muhammad Afriza Hanif" />
+                <meta
+                    name="keywords"
+                    content="Muhammad Afriza Hanif, CV API, Curriculum Vitae, Portfolio API, RESTful API, Laravel, Software Engineer"
+                />
+                <meta name="robots" content="index, follow" />
+                <link rel="canonical" href={getOrigin()} />
+
+                {/* Open Graph / Social Sharing */}
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content={getOrigin()} />
+                <meta
+                    property="og:title"
+                    content="CV API | Muhammad Afriza Hanif"
+                />
+                <meta
+                    property="og:description"
+                    content="Production-Ready RESTful API engine providing structured data for developer portfolios, work experience, and technical skills."
+                />
+                <meta property="og:site_name" content={appName || "CV API"} />
+
+                {/* Twitter Card */}
+                <meta name="twitter:card" content="summary" />
+                <meta
+                    name="twitter:title"
+                    content="CV API | Muhammad Afriza Hanif"
+                />
+                <meta
+                    name="twitter:description"
+                    content="Production-Ready RESTful API engine providing structured data for developer portfolios, work experience, and technical skills."
+                />
+
+                {/* Structured Data (Schema.org / JSON-LD) */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "ProfilePage",
+                        mainEntity: {
+                            "@type": "Person",
+                            name: "Muhammad Afriza Hanif",
+                            jobTitle: "Software Engineer",
+                            description:
+                                "Software Engineer specializing in backend development and scalable web solutions.",
+                            url: getOrigin(),
+                        },
+                    })}
+                </script>
+            </Head>
 
             <div
                 className="min-vh-100 bg-light d-flex flex-column text-body"
-                style={{ paddingTop: '75px' }}
+                style={{ paddingTop: "75px" }}
             >
                 {/* Top Navigation */}
                 <Header appName={appName} />
@@ -283,18 +335,18 @@ export default function Welcome({
                                             onClick={() =>
                                                 handleCopy(
                                                     `${getOrigin()}/api`,
-                                                    'base-url',
+                                                    "base-url",
                                                 )
                                             }
                                         >
-                                            {copiedSnippet === 'base-url' ? (
+                                            {copiedSnippet === "base-url" ? (
                                                 <>
-                                                    <i className="bi bi-check-lg me-1"></i>{' '}
+                                                    <i className="bi bi-check-lg me-1"></i>{" "}
                                                     Copied
                                                 </>
                                             ) : (
                                                 <>
-                                                    <i className="bi bi-clipboard me-1"></i>{' '}
+                                                    <i className="bi bi-clipboard me-1"></i>{" "}
                                                     Copy
                                                 </>
                                             )}
@@ -304,7 +356,7 @@ export default function Welcome({
                                         href="#endpoints"
                                         className="btn btn-sm btn-outline-secondary rounded-pill px-3"
                                     >
-                                        <i className="bi bi-list-ul me-1"></i>{' '}
+                                        <i className="bi bi-list-ul me-1"></i>{" "}
                                         Browse Endpoints
                                     </a>
                                 </div>
@@ -345,15 +397,15 @@ export default function Welcome({
                                             onClick={() =>
                                                 handleCopy(
                                                     `curl -X GET "${getOrigin()}/api/profiles" \\\n  -H "Accept: application/json"`,
-                                                    'curl-preview',
+                                                    "curl-preview",
                                                 )
                                             }
                                             title="Copy snippet"
                                         >
                                             {copiedSnippet ===
-                                            'curl-preview' ? (
+                                            "curl-preview" ? (
                                                 <span className="text-success small">
-                                                    <i className="bi bi-check-lg"></i>{' '}
+                                                    <i className="bi bi-check-lg"></i>{" "}
                                                     Copied
                                                 </span>
                                             ) : (
@@ -476,7 +528,7 @@ export default function Welcome({
                                         </div>
                                     </div>
                                     <p className="small text-muted mb-0">
-                                        Support for dedicated{' '}
+                                        Support for dedicated{" "}
                                         <code>/restore</code> endpoints across
                                         all major curriculum resources.
                                     </p>
@@ -500,7 +552,7 @@ export default function Welcome({
                                     </div>
                                     <p className="small text-muted mb-0">
                                         Zero-downtime deploy friendly with
-                                        integrated Laravel <code>/up</code>{' '}
+                                        integrated Laravel <code>/up</code>{" "}
                                         health check endpoints.
                                     </p>
                                 </div>
@@ -517,7 +569,7 @@ export default function Welcome({
                                 Available API Endpoints
                             </h2>
                             <p className="text-muted small mb-0">
-                                Showing {filteredEndpoints.length} of{' '}
+                                Showing {filteredEndpoints.length} of{" "}
                                 {ENDPOINTS.length} available resources
                             </p>
                         </div>
@@ -544,7 +596,7 @@ export default function Welcome({
                                     <button
                                         type="button"
                                         className="btn btn-outline-secondary border-start-0"
-                                        onClick={() => setSearchQuery('')}
+                                        onClick={() => setSearchQuery("")}
                                     >
                                         <i className="bi bi-x"></i>
                                     </button>
@@ -561,8 +613,8 @@ export default function Welcome({
                                 type="button"
                                 className={`btn btn-sm rounded-pill px-3 ${
                                     selectedCategory === cat
-                                        ? 'btn-dark'
-                                        : 'btn-outline-secondary border-0 bg-white shadow-sm'
+                                        ? "btn-dark"
+                                        : "btn-outline-secondary border-0 bg-white shadow-sm"
                                 }`}
                                 onClick={() => setSelectedCategory(cat)}
                             >
@@ -579,32 +631,32 @@ export default function Welcome({
                                     <tr>
                                         <th
                                             scope="col"
-                                            style={{ width: '22%' }}
+                                            style={{ width: "22%" }}
                                             className="ps-4"
                                         >
                                             Resource
                                         </th>
                                         <th
                                             scope="col"
-                                            style={{ width: '28%' }}
+                                            style={{ width: "28%" }}
                                         >
                                             Endpoint
                                         </th>
                                         <th
                                             scope="col"
-                                            style={{ width: '15%' }}
+                                            style={{ width: "15%" }}
                                         >
                                             Methods
                                         </th>
                                         <th
                                             scope="col"
-                                            style={{ width: '25%' }}
+                                            style={{ width: "25%" }}
                                         >
                                             Description
                                         </th>
                                         <th
                                             scope="col"
-                                            style={{ width: '10%' }}
+                                            style={{ width: "10%" }}
                                             className="text-end pe-4"
                                         >
                                             Action
@@ -655,31 +707,31 @@ export default function Welcome({
                                                         {ep.methods.map(
                                                             (method) => {
                                                                 let badgeClass =
-                                                                    'bg-secondary';
+                                                                    "bg-secondary";
                                                                 if (
                                                                     method ===
-                                                                    'GET'
+                                                                    "GET"
                                                                 )
                                                                     badgeClass =
-                                                                        'bg-success';
+                                                                        "bg-success";
                                                                 if (
                                                                     method ===
-                                                                    'POST'
+                                                                    "POST"
                                                                 )
                                                                     badgeClass =
-                                                                        'bg-primary';
+                                                                        "bg-primary";
                                                                 if (
                                                                     method ===
-                                                                    'PUT'
+                                                                    "PUT"
                                                                 )
                                                                     badgeClass =
-                                                                        'bg-warning text-dark';
+                                                                        "bg-warning text-dark";
                                                                 if (
                                                                     method ===
-                                                                    'DELETE'
+                                                                    "DELETE"
                                                                 )
                                                                     badgeClass =
-                                                                        'bg-danger';
+                                                                        "bg-danger";
 
                                                                 return (
                                                                     <span
@@ -701,21 +753,21 @@ export default function Welcome({
                                                     </div>
                                                     <div className="mt-1 d-flex flex-wrap gap-1">
                                                         {ep.access ===
-                                                            'public' && (
+                                                            "public" && (
                                                             <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill fs-8">
                                                                 <i className="bi bi-globe me-1"></i>
                                                                 Public
                                                             </span>
                                                         )}
                                                         {ep.access ===
-                                                            'auth' && (
+                                                            "auth" && (
                                                             <span className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fs-8">
                                                                 <i className="bi bi-lock-fill me-1"></i>
                                                                 Bearer Token
                                                             </span>
                                                         )}
                                                         {ep.access ===
-                                                            'public-read' && (
+                                                            "public-read" && (
                                                             <>
                                                                 <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill fs-8">
                                                                     <i className="bi bi-globe me-1"></i>

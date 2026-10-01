@@ -21,6 +21,7 @@ class SetNoCacheHeaders
         $response->headers->set('Pragma', 'no-cache');
         $response->headers->set('Expires', '0');
         $response->headers->set('X-LiteSpeed-Cache-Control', 'no-cache');
+        $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
 
         return $response;
     }

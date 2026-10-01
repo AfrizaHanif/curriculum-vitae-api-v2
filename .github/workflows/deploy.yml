@@ -1,13 +1,18 @@
 name: Deploy to Hostinger
 
 on:
-    # push:
-    #   branches:
-    #     - main
+    push:
+        branches:
+            - main
     workflow_dispatch:
         inputs:
             run_seeders:
                 description: "Run database seeders (php artisan db:seed --force)?"
+                required: false
+                type: boolean
+                default: false
+            factory_reset:
+                description: "⚠️ DANGER: Wipe database and re-seed from scratch (migrate:fresh --seed --force)?"
                 required: false
                 type: boolean
                 default: false
@@ -76,6 +81,8 @@ jobs:
                   php artisan key:generate
 
             - name: Install NPM Dependencies & Build Assets
+              env:
+                  VITE_APP_NAME: ${{ secrets.APP_NAME || vars.APP_NAME || 'CV API | Muhammad Afriza Hanif' }}
               run: |
                   npm ci
                   npm run build
@@ -136,6 +143,7 @@ jobs:
                   PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
                   REMOTE_PATH: ${{ secrets.HOSTINGER_REMOTE_PATH }}
                   RUN_SEEDERS: ${{ github.event.inputs.run_seeders || 'false' }}
+                  FACTORY_RESET: ${{ github.event.inputs.factory_reset || 'false' }}
               run: |
                   ssh -i ~/.ssh/id_rsa -p "$PORT" -o StrictHostKeyChecking=no "$USER@$HOST" "
                     set -e
@@ -156,13 +164,19 @@ jobs:
                     # Link storage
                     php artisan storage:link --force || true
 
-                    # Run database migrations
-                    php artisan migrate --force
+                    # Database handling: Factory reset vs standard migration
+                    if [ '$FACTORY_RESET' = 'true' ]; then
+                      echo '⚠️ DANGER: Resetting database to factory default (migrate:fresh --seed)...'
+                      php artisan migrate:fresh --seed --force
+                    else
+                      # Run database migrations
+                      php artisan migrate --force
 
-                    # Run database seeders if manually requested
-                    if [ '$RUN_SEEDERS' = 'true' ]; then
-                      echo '🌱 Running database seeders...'
-                      php artisan db:seed --force
+                      # Run database seeders if manually requested
+                      if [ '$RUN_SEEDERS' = 'true' ]; then
+                        echo '🌱 Running database seeders...'
+                        php artisan db:seed --force
+                      fi
                     fi
 
                     # Restart queue workers if applicable
