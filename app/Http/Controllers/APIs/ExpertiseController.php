@@ -32,7 +32,7 @@ class ExpertiseController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = ($request->user()?->profile?->expertises() ?? Expertise::query())->with('portfolios');
+        $query = ($request->user()?->profile?->expertises()->getQuery() ?? Expertise::query())->with('portfolios');
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

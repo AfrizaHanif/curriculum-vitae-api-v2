@@ -21,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $deleted_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Model $featureable
+ * @property-read Portfolio|Project|null $featureable
  */
 #[Table('features')]
 #[Fillable([
@@ -49,6 +49,9 @@ class Feature extends BaseAPI
 
     protected int $idPadding = 3;
 
+    /**
+     * @return MorphTo<Model, $this>
+     */
     public function featureable(): MorphTo
     {
         return $this->morphTo();

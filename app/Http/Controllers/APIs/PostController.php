@@ -34,7 +34,7 @@ class PostController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = $request->user()?->profile?->posts() ?? Post::query();
+        $query = $request->user()?->profile?->posts()->getQuery() ?? Post::query();
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

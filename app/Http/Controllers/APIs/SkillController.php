@@ -32,7 +32,7 @@ class SkillController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = $request->user()?->profile?->skills() ?? Skill::query();
+        $query = $request->user()?->profile?->skills()->getQuery() ?? Skill::query();
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

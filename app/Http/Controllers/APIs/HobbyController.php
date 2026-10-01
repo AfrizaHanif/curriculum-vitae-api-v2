@@ -32,7 +32,7 @@ class HobbyController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = $request->user()?->profile?->hobbies() ?? Hobby::query();
+        $query = $request->user()?->profile?->hobbies()->getQuery() ?? Hobby::query();
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

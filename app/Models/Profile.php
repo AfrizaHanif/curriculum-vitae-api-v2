@@ -89,71 +89,113 @@ class Profile extends BaseAPI
         'resume',
     ];
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return HasMany<Skill, $this>
+     */
     public function skills(): HasMany
     {
         return $this->hasMany(Skill::class);
     }
 
+    /**
+     * @return HasMany<Certificate, $this>
+     */
     public function certificates(): HasMany
     {
         return $this->hasMany(Certificate::class);
     }
 
+    /**
+     * @return HasMany<Education, $this>
+     */
     public function educations(): HasMany
     {
         return $this->hasMany(Education::class);
     }
 
+    /**
+     * @return HasMany<Experience, $this>
+     */
     public function experiences(): HasMany
     {
         return $this->hasMany(Experience::class);
     }
 
+    /**
+     * @return HasMany<Expertise, $this>
+     */
     public function expertises(): HasMany
     {
         return $this->hasMany(Expertise::class);
     }
 
+    /**
+     * @return HasMany<Hobby, $this>
+     */
     public function hobbies(): HasMany
     {
         return $this->hasMany(Hobby::class);
     }
 
+    /**
+     * @return HasMany<Setup, $this>
+     */
     public function setups(): HasMany
     {
         return $this->hasMany(Setup::class);
     }
 
+    /**
+     * @return HasMany<Social, $this>
+     */
     public function socials(): HasMany
     {
         return $this->hasMany(Social::class);
     }
 
+    /**
+     * @return HasMany<Testimonial, $this>
+     */
     public function testimonials(): HasMany
     {
         return $this->hasMany(Testimonial::class);
     }
 
+    /**
+     * @return HasMany<Portfolio, $this>
+     */
     public function portfolios(): HasMany
     {
         return $this->hasMany(Portfolio::class);
     }
 
+    /**
+     * @return HasMany<Project, $this>
+     */
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
     }
 
+    /**
+     * @return HasMany<Post, $this>
+     */
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
     }
 
+    /**
+     * @return HasManyThrough<CaseStudy, Portfolio, $this>
+     */
     public function caseStudies(): HasManyThrough
     {
         return $this->hasManyThrough(CaseStudy::class, Portfolio::class);

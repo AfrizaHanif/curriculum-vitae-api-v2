@@ -32,7 +32,7 @@ class EducationController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = $request->user()?->profile?->educations() ?? Education::query();
+        $query = $request->user()?->profile?->educations()->getQuery() ?? Education::query();
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

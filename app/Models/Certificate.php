@@ -16,8 +16,8 @@ use Illuminate\Support\Carbon;
  * @property string $title
  * @property string $type
  * @property string|null $issuer
- * @property Carbon|string|null $issued_date
- * @property Carbon|string|null $expired_date
+ * @property Carbon|null $issued_date
+ * @property Carbon|null $expired_date
  * @property string|null $credential_id
  * @property string|null $credential_url
  * @property string|null $description
@@ -66,6 +66,9 @@ class Certificate extends BaseAPI
     /** @var array<int, string> */
     public array $fileAttributes = ['file'];
 
+    /**
+     * @return BelongsTo<Profile, $this>
+     */
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);

@@ -45,6 +45,9 @@ class Post extends BaseAPI
 
     public bool $deleteFilesOnSoftDelete = false;
 
+    /**
+     * @return BelongsTo<Profile, $this>
+     */
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);

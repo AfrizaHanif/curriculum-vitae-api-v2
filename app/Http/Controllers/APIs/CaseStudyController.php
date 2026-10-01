@@ -32,7 +32,7 @@ class CaseStudyController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = $request->user()?->profile?->caseStudies() ?? CaseStudy::query();
+        $query = $request->user()?->profile?->caseStudies()->getQuery() ?? CaseStudy::query();
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

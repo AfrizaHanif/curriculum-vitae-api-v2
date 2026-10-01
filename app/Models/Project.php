@@ -108,16 +108,25 @@ class Project extends BaseAPI
         });
     }
 
+    /**
+     * @return BelongsTo<Profile, $this>
+     */
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);
     }
 
+    /**
+     * @return BelongsTo<Portfolio, $this>
+     */
     public function portfolio(): BelongsTo
     {
         return $this->belongsTo(Portfolio::class);
     }
 
+    /**
+     * @return MorphMany<Feature, $this>
+     */
     public function features(): MorphMany
     {
         return $this->morphMany(Feature::class, 'featureable');

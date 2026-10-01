@@ -35,7 +35,7 @@ class ProjectController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = ($request->user()?->profile?->projects() ?? Project::query())
+        $query = ($request->user()?->profile?->projects()->getQuery() ?? Project::query())
             ->with(['features', 'portfolio']);
 
         match ($request->query('trashed')) {

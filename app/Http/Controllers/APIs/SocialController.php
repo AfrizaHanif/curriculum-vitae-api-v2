@@ -32,7 +32,7 @@ class SocialController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = $request->user()?->profile?->socials() ?? Social::query();
+        $query = $request->user()?->profile?->socials()->getQuery() ?? Social::query();
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

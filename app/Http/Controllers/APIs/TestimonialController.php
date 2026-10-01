@@ -32,7 +32,7 @@ class TestimonialController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = $request->user()?->profile?->testimonials() ?? Testimonial::query();
+        $query = $request->user()?->profile?->testimonials()->getQuery() ?? Testimonial::query();
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

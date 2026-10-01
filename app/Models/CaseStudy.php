@@ -58,6 +58,9 @@ class CaseStudy extends BaseAPI
 
     ];
 
+    /**
+     * @return BelongsTo<Portfolio, $this>
+     */
     public function portfolio(): BelongsTo
     {
         return $this->belongsTo(Portfolio::class);

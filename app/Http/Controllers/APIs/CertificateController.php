@@ -33,7 +33,7 @@ class CertificateController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = $request->user()?->profile?->certificates() ?? Certificate::query();
+        $query = $request->user()?->profile?->certificates()->getQuery() ?? Certificate::query();
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

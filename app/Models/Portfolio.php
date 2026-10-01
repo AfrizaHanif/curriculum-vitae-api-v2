@@ -114,6 +114,9 @@ class Portfolio extends BaseAPI
         });
     }
 
+    /**
+     * @return BelongsTo<Profile, $this>
+     */
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);
@@ -129,11 +132,17 @@ class Portfolio extends BaseAPI
     //     return $this->hasMany(self::class, 'parent_id');
     // }
 
+    /**
+     * @return HasMany<Project, $this>
+     */
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
     }
 
+    /**
+     * @return HasMany<CaseStudy, $this>
+     */
     public function caseStudies(): HasMany
     {
         return $this->hasMany(CaseStudy::class);
@@ -141,12 +150,17 @@ class Portfolio extends BaseAPI
 
     /**
      * Get all of the features for the portfolio.
+     *
+     * @return MorphMany<Feature, $this>
      */
     public function features(): MorphMany
     {
         return $this->morphMany(Feature::class, 'featureable');
     }
 
+    /**
+     * @return BelongsToMany<Expertise, $this>
+     */
     public function expertises(): BelongsToMany
     {
         return $this->belongsToMany(Expertise::class, 'expertise_portfolio', 'portfolio_id', 'expertise_id');

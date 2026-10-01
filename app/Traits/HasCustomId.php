@@ -16,7 +16,7 @@ trait HasCustomId
 {
     protected static function bootHasCustomId(): void
     {
-        static::creating(function (Model $model) {
+        static::creating(function (self $model) {
             $keyName = $model->getKeyName();
 
             // If ID is already set, do nothing

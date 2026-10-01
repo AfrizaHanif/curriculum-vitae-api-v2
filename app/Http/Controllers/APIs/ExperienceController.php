@@ -32,7 +32,7 @@ class ExperienceController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = $request->user()?->profile?->experiences() ?? Experience::query();
+        $query = $request->user()?->profile?->experiences()->getQuery() ?? Experience::query();
 
         match ($request->query('trashed')) {
             'with' => $query->withTrashed(),

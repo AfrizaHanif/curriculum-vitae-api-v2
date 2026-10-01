@@ -35,7 +35,7 @@ class PortfolioController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = ($request->user()?->profile?->portfolios() ?? Portfolio::query())
+        $query = ($request->user()?->profile?->portfolios()->getQuery() ?? Portfolio::query())
             ->with(['features', 'caseStudies', 'expertises']);
 
         match ($request->query('trashed')) {

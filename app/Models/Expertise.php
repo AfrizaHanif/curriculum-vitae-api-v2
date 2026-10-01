@@ -49,11 +49,17 @@ class Expertise extends BaseAPI
         ];
     }
 
+    /**
+     * @return BelongsTo<Profile, $this>
+     */
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);
     }
 
+    /**
+     * @return BelongsToMany<Portfolio, $this>
+     */
     public function portfolios(): BelongsToMany
     {
         return $this->belongsToMany(Portfolio::class, 'expertise_portfolio', 'expertise_id', 'portfolio_id');

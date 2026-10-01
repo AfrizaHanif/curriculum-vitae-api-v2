@@ -44,6 +44,9 @@ class Skill extends BaseAPI
     // Custom Properties
     protected string $idPrefix = 'SKI-'; // HasCustomId
 
+    /**
+     * @return BelongsTo<Profile, $this>
+     */
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class, 'profile_id', 'id');

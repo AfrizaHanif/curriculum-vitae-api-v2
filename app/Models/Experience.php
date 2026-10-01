@@ -66,6 +66,9 @@ class Experience extends BaseAPI
 
     protected int $idPadding = 3;
 
+    /**
+     * @return BelongsTo<Profile, $this>
+     */
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);
