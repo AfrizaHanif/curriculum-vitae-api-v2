@@ -1,4 +1,9 @@
 name: Deploy to Hostinger
+run-name: >-
+  ${{ inputs.factory_reset && format('Deploy to Hostinger (⚠️ Factory Reset) by @{0}', github.actor)
+      || (inputs.run_seeders && format('Deploy to Hostinger (With Seeders) by @{0}', github.actor)
+      || (github.event_name == 'workflow_dispatch' && format('Deploy to Hostinger by @{0}', github.actor)
+      || github.event.head_commit.message)) }}
 
 on:
     push:
