@@ -1,0 +1,165 @@
+name: Remote Database Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Artisan Database Command"
+        required: true
+        type: choice
+        options:
+          - "migrate (Run pending migrations)"
+          - "migrate:status (Show migration status)"
+          - "db:seed (Run DatabaseSeeder)"
+          - "db:seed --class (Run specific Seeder class)"
+          - "migrate:rollback (Rollback last migration batch)"
+          - "migrate:fresh --seed (⚠️ DANGER: Wipe & re-seed)"
+        default: "migrate:status (Show migration status)"
+      seeder_class:
+        description: "Seeder Class Name (e.g. TestimonialSeeder, only for 'db:seed --class')"
+        required: false
+        type: string
+        default: ""
+      rollback_steps:
+        description: "Rollback Steps (only for 'migrate:rollback')"
+        required: false
+        type: string
+        default: "1"
+      create_backup:
+        description: "Create an automatic database backup before running?"
+        required: false
+        type: boolean
+        default: true
+      danger_confirm:
+        description: "⚠️ Type 'RESET' to confirm dangerous operations (migrate:fresh)"
+        required: false
+        type: string
+        default: ""
+
+concurrency:
+  group: remote-db-ops
+  cancel-in-progress: false
+
+jobs:
+  execute:
+    name: Execute Remote Database Operation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate Inputs
+        run: |
+          OPERATION="${{ github.event.inputs.operation }}"
+          DANGER_CONFIRM="${{ github.event.inputs.danger_confirm }}"
+          SEEDER_CLASS="${{ github.event.inputs.seeder_class }}"
+
+          if [[ "$OPERATION" == *"migrate:fresh"* ]]; then
+            if [ "$DANGER_CONFIRM" != "RESET" ]; then
+              echo "❌ Aborting: 'migrate:fresh' requested but danger_confirm was not 'RESET'."
+              echo "To run migrate:fresh, you must explicitly type 'RESET' in the confirmation input."
+              exit 1
+            fi
+          fi
+
+          if [[ "$OPERATION" == *"db:seed --class"* ]]; then
+            if [ -z "$SEEDER_CLASS" ]; then
+              echo "❌ Aborting: 'db:seed --class' requested but no seeder_class was provided."
+              exit 1
+            fi
+          fi
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HOSTINGER_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT || '65002' }} -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Execute Database Command on Hostinger
+        env:
+          HOST: ${{ secrets.HOSTINGER_HOST }}
+          USER: ${{ secrets.HOSTINGER_USER }}
+          PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+          REMOTE_PATH: ${{ secrets.HOSTINGER_REMOTE_PATH }}
+          OPERATION_RAW: ${{ github.event.inputs.operation }}
+          SEEDER_CLASS: ${{ github.event.inputs.seeder_class }}
+          ROLLBACK_STEPS: ${{ github.event.inputs.rollback_steps || '1' }}
+          CREATE_BACKUP: ${{ github.event.inputs.create_backup }}
+        run: |
+          ssh -i ~/.ssh/id_rsa -p "$PORT" -o StrictHostKeyChecking=no "$USER@$HOST" "
+            set -e
+            cd '$REMOTE_PATH'
+
+            if [ ! -f artisan ]; then
+              echo '❌ Error: Laravel artisan not found in $REMOTE_PATH'
+              exit 1
+            fi
+
+            # Optional Backup
+            if [ '$CREATE_BACKUP' = 'true' ]; then
+              if [ -f .env ]; then
+                echo '📦 Creating automatic pre-operation database backup...'
+                DB_HOST=\$(grep -E '^DB_HOST=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
+                DB_PORT=\$(grep -E '^DB_PORT=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\" || echo '3306')
+                DB_NAME=\$(grep -E '^DB_DATABASE=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
+                DB_USER=\$(grep -E '^DB_USERNAME=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
+                DB_PASS=\$(grep -E '^DB_PASSWORD=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
+
+                BACKUP_DIR=\"\$HOME/backups/db\"
+                mkdir -p \"\$BACKUP_DIR\"
+                BACKUP_FILE=\"\$BACKUP_DIR/pre_db_op_\$(date +'%Y_%m_%d_%H%M%S').sql.gz\"
+
+                mysqldump --single-transaction --quick --skip-lock-tables \
+                  -h \"\$DB_HOST\" -P \"\$DB_PORT\" -u \"\$DB_USER\" -p\"\$DB_PASS\" \"\$DB_NAME\" | gzip > \"\$BACKUP_FILE\" || echo '⚠️ Backup failed, proceeding with caution...'
+
+                if [ -f \"\$BACKUP_FILE\" ]; then
+                  echo \"✅ Backup saved to \$BACKUP_FILE\"
+                fi
+              fi
+            fi
+
+            # Determine and execute Artisan command
+            echo '🚀 Executing command...'
+            case '$OPERATION_RAW' in
+              *\"migrate:status\"*)
+                php artisan migrate:status
+                ;;
+              *\"migrate:fresh\"*)
+                echo '⚠️ Running migrate:fresh --seed --force...'
+                APP_ENV=local php artisan migrate:fresh --seed --force
+                ;;
+              *\"migrate:rollback\"*)
+                echo '⏪ Rolling back \$ROLLBACK_STEPS step(s)...'
+                php artisan migrate:rollback --step='$ROLLBACK_STEPS' --force
+                ;;
+              *\"db:seed --class\"*)
+                echo '🌱 Running seeder class: $SEEDER_CLASS...'
+                php artisan db:seed --class='$SEEDER_CLASS' --force
+                ;;
+              *\"db:seed\"*)
+                echo '🌱 Running default DatabaseSeeder...'
+                php artisan db:seed --force
+                ;;
+              *\"migrate\"*)
+                echo '⚡ Running migrations...'
+                php artisan migrate --force
+                ;;
+              *)
+                echo '❌ Unknown operation: $OPERATION_RAW'
+                exit 1
+                ;;
+            esac
+          "
+
+      - name: Generate Run Summary
+        if: always()
+        run: |
+          echo "### 🗄️ Database Operation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Operation:** \`${{ github.event.inputs.operation }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-operation Backup:** \`${{ github.event.inputs.create_backup }}\`" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ github.event.inputs.seeder_class }}" ]; then
+            echo "- **Seeder Class:** \`${{ github.event.inputs.seeder_class }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "${{ github.event.inputs.rollback_steps }}" ]; then
+            echo "- **Rollback Step(s):** \`${{ github.event.inputs.rollback_steps }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
