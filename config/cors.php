@@ -15,16 +15,28 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api', 'api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => array_values(array_filter(array_map(
+    'allowed_origins' => array_values(array_unique(array_filter(array_map(
         fn ($origin) => rtrim(trim($origin), '/'),
-        explode(',', (string) env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173'))
-    ))),
+        array_merge(
+            [
+                'https://afrizahanif.com',
+                'https://www.afrizahanif.com',
+                'http://localhost:3000',
+                'http://127.0.0.1:3000',
+                'http://localhost:5173',
+                'http://127.0.0.1:5173',
+            ],
+            explode(',', (string) env('CORS_ALLOWED_ORIGINS', ''))
+        )
+    )))),
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        '#^https?://(.*\.)?afrizahanif\.com$#',
+    ],
 
     'allowed_headers' => ['*'],
 
