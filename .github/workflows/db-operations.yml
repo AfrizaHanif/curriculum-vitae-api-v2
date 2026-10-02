@@ -1,4 +1,5 @@
 name: Remote Database Operations
+run-name: "DB: ${{ inputs.operation }} by @${{ github.actor }}"
 
 on:
   workflow_dispatch:
