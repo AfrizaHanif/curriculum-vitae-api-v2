@@ -41,11 +41,15 @@ class ProfileSeeder extends Seeder
             'status' => 'Junior Web Developer',
             'formal_photo' => '/images/profile_formal.jpg',
             'setup_image' => '/images/profile_setup.png',
-            'resume' => '/pdfs/CV_Muhammad_Afriza_Hanif.pdf',
+            'resume' => [
+                'id' => '/pdfs/CV_Muhammad_Afriza_Hanif_ID.pdf',
+                'en' => '/pdfs/CV_Muhammad_Afriza_Hanif_EN.pdf',
+            ],
         ]);
 
         $this->seedFile('/images/profile_formal.jpg');
         $this->seedFile('/images/profile_setup.png');
-        $this->seedFile('/pdfs/CV_Muhammad_Afriza_Hanif.pdf');
+        $this->seedFile('/pdfs/CV_Muhammad_Afriza_Hanif_ID.pdf');
+        $this->seedFile('/pdfs/CV_Muhammad_Afriza_Hanif_EN.pdf');
     }
 }

@@ -27,7 +27,11 @@ class StoreSetupRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
-            'reason' => ['sometimes', 'nullable', 'string'],
+            'reason' => ['sometimes', 'nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
         ];
     }
 }

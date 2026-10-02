@@ -37,7 +37,11 @@ class UpdateEducationRequest extends FormRequest
             'status' => ['sometimes', 'required', Rule::enum(EducationStatus::class)],
             'start_period' => ['sometimes', 'required', 'date'],
             'finish_period' => ['sometimes', 'nullable', 'date', 'after_or_equal:start_period'],
-            'description' => ['sometimes', 'nullable', 'array'],
+            'description' => ['sometimes', 'nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
             'latitude' => ['sometimes', 'nullable', 'string', 'max:15'],
             'longitude' => ['sometimes', 'nullable', 'string', 'max:15'],
         ];

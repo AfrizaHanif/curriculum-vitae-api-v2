@@ -47,7 +47,11 @@ class UpdatePortfolioRequest extends FormRequest
             'remaining_gallery' => ['sometimes', 'nullable', 'array'],
             'start_period' => ['sometimes', 'required', 'date'],
             'finish_period' => ['sometimes', 'required', 'date', 'after_or_equal:start_period'],
-            'description' => ['sometimes', 'required', 'string'],
+            'description' => ['sometimes', 'required', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
             'tags' => ['sometimes', 'nullable', 'array'],
             'technology' => ['sometimes', 'nullable', 'array'],
             'repositories' => ['sometimes', 'nullable', 'array'],

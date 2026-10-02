@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('formal_photo')->nullable();
             $table->string('casual_photo')->nullable();
             $table->string('setup_image')->nullable();
-            $table->string('resume')->nullable();
+            $table->json('resume')->nullable();
             $table->timestamps();
         });
     }

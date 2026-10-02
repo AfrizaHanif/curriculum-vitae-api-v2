@@ -39,7 +39,9 @@ class ProfileResource extends JsonResource
             'casual_photo' => $this->casual_photo ? $disk->url($this->casual_photo) : null,
             'formal_photo' => $this->formal_photo ? $disk->url($this->formal_photo) : null,
             'setup_image' => $this->setup_image ? $disk->url($this->setup_image) : null,
-            'resume' => $this->resume ? $disk->url($this->resume) : null,
+            'resume' => is_array($this->resume)
+                ? array_map(fn ($path) => $path ? $disk->url(ltrim($path, '/')) : null, $this->resume)
+                : ($this->resume ? $disk->url(ltrim($this->resume, '/')) : null),
         ];
     }
 }

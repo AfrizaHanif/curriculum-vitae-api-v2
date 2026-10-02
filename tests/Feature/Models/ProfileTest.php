@@ -96,10 +96,10 @@ test('profile resume can be uploaded and is not deleted on update', function () 
     Storage::fake('public');
 
     // Simulate seeded file with leading slash
-    Storage::disk('public')->put('pdfs/Resume.pdf', 'old resume content');
+    Storage::disk('public')->put('pdfs/Resume_EN.pdf', 'old resume content');
 
     $this->profile->update([
-        'resume' => '/pdfs/Resume.pdf',
+        'resume' => ['en' => '/pdfs/Resume_EN.pdf'],
     ]);
 
     Sanctum::actingAs($this->user);
@@ -112,26 +112,64 @@ test('profile resume can be uploaded and is not deleted on update', function () 
         'email' => $this->profile->email,
         'birthday' => $this->profile->birthday->format('Y-m-d'),
         'status' => $this->profile->status,
-        'resume' => $file,
+        'resume' => [
+            'en' => $file,
+        ],
     ]);
 
     $response->assertOk();
 
     // Verify file exists on public disk
-    expect(Storage::disk('public')->exists('pdfs/CV_Muhammad_Afriza_Hanif.pdf'))->toBeTrue();
+    expect(Storage::disk('public')->exists('pdfs/CV_Muhammad_Afriza_Hanif_EN.pdf'))->toBeTrue();
 
     // Verify content is the new file, not deleted
     $this->profile->refresh();
-    expect($this->profile->resume)->toBe('pdfs/CV_Muhammad_Afriza_Hanif.pdf');
+    expect($this->profile->resume['en'])->toBe('pdfs/CV_Muhammad_Afriza_Hanif_EN.pdf');
+});
+
+test('profile resume can be uploaded for multiple languages', function () {
+    Storage::fake('public');
+
+    Sanctum::actingAs($this->user);
+
+    $fileEn = UploadedFile::fake()->create('cv_en.pdf', 100, 'application/pdf');
+    $fileId = UploadedFile::fake()->create('cv_id.pdf', 100, 'application/pdf');
+
+    $response = $this->putJson("/api/profiles/{$this->profile->id}", [
+        'fullname' => $this->profile->fullname,
+        'phone' => $this->profile->phone,
+        'email' => $this->profile->email,
+        'birthday' => $this->profile->birthday->format('Y-m-d'),
+        'status' => $this->profile->status,
+        'resume' => [
+            'en' => $fileEn,
+            'id' => $fileId,
+        ],
+    ]);
+
+    $response->assertOk();
+
+    expect(Storage::disk('public')->exists('pdfs/CV_Muhammad_Afriza_Hanif_EN.pdf'))->toBeTrue()
+        ->and(Storage::disk('public')->exists('pdfs/CV_Muhammad_Afriza_Hanif_ID.pdf'))->toBeTrue();
+
+    $this->profile->refresh();
+    expect($this->profile->resume)->toBe([
+        'en' => 'pdfs/CV_Muhammad_Afriza_Hanif_EN.pdf',
+        'id' => 'pdfs/CV_Muhammad_Afriza_Hanif_ID.pdf',
+    ]);
 });
 
 test('updating profile without file does not delete existing resume', function () {
     Storage::fake('public');
 
-    Storage::disk('public')->put('pdfs/Resume.pdf', 'resume content');
+    Storage::disk('public')->put('pdfs/Resume_EN.pdf', 'resume content');
+    Storage::disk('public')->put('pdfs/Resume_ID.pdf', 'resume content');
 
     $this->profile->update([
-        'resume' => 'pdfs/Resume.pdf',
+        'resume' => [
+            'en' => 'pdfs/Resume_EN.pdf',
+            'id' => 'pdfs/Resume_ID.pdf',
+        ],
     ]);
 
     Sanctum::actingAs($this->user);
@@ -146,8 +184,53 @@ test('updating profile without file does not delete existing resume', function (
 
     $response->assertOk();
 
-    expect(Storage::disk('public')->exists('pdfs/Resume.pdf'))->toBeTrue();
+    expect(Storage::disk('public')->exists('pdfs/Resume_EN.pdf'))->toBeTrue()
+        ->and(Storage::disk('public')->exists('pdfs/Resume_ID.pdf'))->toBeTrue();
     $this->profile->refresh();
-    expect($this->profile->resume)->toBe('pdfs/Resume.pdf')
+    expect($this->profile->resume)->toBe([
+        'en' => 'pdfs/Resume_EN.pdf',
+        'id' => 'pdfs/Resume_ID.pdf',
+    ])
         ->and($this->profile->fullname)->toBe('Updated Name');
+});
+
+test('profile resume can be uploaded as a single file', function () {
+    Storage::fake('public');
+
+    Sanctum::actingAs($this->user);
+
+    $file = UploadedFile::fake()->create('single_resume.pdf', 100, 'application/pdf');
+
+    $response = $this->putJson("/api/profiles/{$this->profile->id}", [
+        'fullname' => $this->profile->fullname,
+        'phone' => $this->profile->phone,
+        'email' => $this->profile->email,
+        'birthday' => $this->profile->birthday->format('Y-m-d'),
+        'status' => $this->profile->status,
+        'resume' => $file,
+    ]);
+
+    $response->assertOk();
+
+    expect(Storage::disk('public')->exists('pdfs/CV_Muhammad_Afriza_Hanif_EN.pdf'))->toBeTrue();
+
+    $this->profile->refresh();
+    expect($this->profile->resume['en'])->toBe('pdfs/CV_Muhammad_Afriza_Hanif_EN.pdf');
+});
+
+test('profile resource transforms localized resume into storage urls', function () {
+    $this->profile->update([
+        'resume' => [
+            'en' => 'pdfs/CV_EN.pdf',
+            'id' => 'pdfs/CV_ID.pdf',
+        ],
+    ]);
+
+    $response = $this->getJson("/api/profiles/{$this->profile->id}");
+
+    $response->assertOk();
+    $data = $response->json('data.resume');
+    expect($data)->toBeArray()
+        ->and($data['en'])->toContain('pdfs/CV_EN.pdf')
+        ->and($data['id'])->toContain('pdfs/CV_ID.pdf');
 });

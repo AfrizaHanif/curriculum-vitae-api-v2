@@ -23,9 +23,12 @@ class Setup extends BaseAPI
     /** @use HasFactory<SetupFactory> */
     use HasFactory, SoftDeletes;
 
-    protected $casts = [
-        'reason' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'reason' => 'array',
+        ];
+    }
 
     // Custom Properties
     protected string $idPrefix = 'SET-'; // HasCustomId

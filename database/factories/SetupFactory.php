@@ -23,7 +23,7 @@ class SetupFactory extends Factory
             'name' => fake()->word(),
             'category' => fake()->randomElement(['Hardware', 'Software', 'Desk']),
             'description' => fake()->sentence(),
-            'reason' => fake()->sentence(),
+            'reason' => [fake()->sentence()],
         ];
     }
 }

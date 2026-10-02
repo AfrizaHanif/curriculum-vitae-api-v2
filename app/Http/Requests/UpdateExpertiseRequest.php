@@ -26,7 +26,11 @@ class UpdateExpertiseRequest extends FormRequest
     {
         return [
             'title' => ['sometimes', 'required', 'string', 'max:255'],
-            'description' => ['sometimes', 'required', 'string'],
+            'description' => ['sometimes', 'required', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
             'icon' => ['sometimes', 'nullable', 'string', 'max:255'],
             'portfolio_ids' => ['sometimes', 'array'],
             'portfolio_ids.*' => ['string', 'exists:portfolios,id'],

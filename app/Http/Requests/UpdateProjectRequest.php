@@ -49,7 +49,11 @@ class UpdateProjectRequest extends FormRequest
             'start_period' => ['sometimes', 'required', 'date'],
             'finish_period' => ['sometimes', 'nullable', 'date', 'after_or_equal:start_period'],
             'status' => ['sometimes', 'required', Rule::enum(ProjectStatus::class)],
-            'description' => ['sometimes', 'required', 'string'],
+            'description' => ['sometimes', 'required', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
             'delay_reason' => ['sometimes', 'nullable', 'string'],
             'resume_date' => ['sometimes', 'nullable', 'date'],
             'tags' => ['sometimes', 'nullable', 'array'],

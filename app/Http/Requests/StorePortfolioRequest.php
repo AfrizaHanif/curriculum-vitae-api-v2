@@ -41,7 +41,11 @@ class StorePortfolioRequest extends FormRequest
                 : ['sometimes', 'nullable', 'string', 'url', 'max:500'],
             'start_period' => ['required', 'date'],
             'finish_period' => ['required', 'date', 'after_or_equal:start_period'],
-            'description' => ['required', 'string'],
+            'description' => ['required', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
             'tags' => ['sometimes', 'nullable', 'array'],
             'technology' => ['sometimes', 'nullable', 'array'],
             'repositories' => ['sometimes', 'nullable', 'array'],

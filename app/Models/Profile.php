@@ -28,7 +28,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $casual_photo
  * @property string|null $formal_photo
  * @property string|null $setup_image
- * @property string|null $resume
+ * @property array<string, string>|null $resume
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
@@ -63,6 +63,7 @@ class Profile extends BaseAPI
             'tagline' => 'array',
             'description' => 'array',
             'philosophy' => 'array',
+            'resume' => 'array',
             'birthday' => 'date',
         ];
     }

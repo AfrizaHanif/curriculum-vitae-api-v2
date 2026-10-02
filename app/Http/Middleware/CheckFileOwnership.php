@@ -32,13 +32,13 @@ class CheckFileOwnership
         }
 
         $isOwner = match ($folder) {
-            'profiles' => DB::table('profiles')
+            'profiles', 'images', 'pdfs' => DB::table('profiles')
                 ->where('user_id', $user->id)
                 ->where(function ($query) use ($cleanPath): void {
                     $query->where('casual_photo', $cleanPath)
                         ->orWhere('formal_photo', $cleanPath)
                         ->orWhere('setup_image', $cleanPath)
-                        ->orWhere('resume', $cleanPath);
+                        ->orWhere('resume', 'like', '%'.$cleanPath.'%');
                 })
                 ->exists(),
             'certificates' => DB::table('certificates')

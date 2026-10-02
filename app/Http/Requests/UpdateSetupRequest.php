@@ -28,7 +28,11 @@ class UpdateSetupRequest extends FormRequest
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'category' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'required', 'string'],
-            'reason' => ['sometimes', 'nullable', 'string'],
+            'reason' => ['sometimes', 'nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
         ];
     }
 }
