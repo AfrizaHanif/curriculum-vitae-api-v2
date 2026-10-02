@@ -125,11 +125,11 @@ jobs:
                 ;;
               *\"migrate:fresh\"*)
                 echo '⚠️ Running migrate:fresh --seed --force...'
-                APP_ENV=local php artisan migrate:fresh --seed --force
+                php artisan migrate:fresh --seed --force --env=local
                 ;;
               *\"migrate:rollback\"*)
                 echo '⏪ Rolling back \$ROLLBACK_STEPS step(s)...'
-                php artisan migrate:rollback --step='$ROLLBACK_STEPS' --force
+                php artisan migrate:rollback --step='$ROLLBACK_STEPS' --force --env=local
                 ;;
               *\"db:seed --class\"*)
                 echo '🌱 Running seeder class: $SEEDER_CLASS...'

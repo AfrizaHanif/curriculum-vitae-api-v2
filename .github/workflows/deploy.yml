@@ -167,7 +167,7 @@ jobs:
                     # Database handling: Factory reset vs standard migration
                     if [ '$FACTORY_RESET' = 'true' ]; then
                       echo '⚠️ DANGER: Resetting database to factory default (migrate:fresh --seed)...'
-                      APP_ENV=local php artisan migrate:fresh --seed --force
+                      php artisan migrate:fresh --seed --force --env=local
                     else
                       # Run database migrations
                       php artisan migrate --force
