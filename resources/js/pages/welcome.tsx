@@ -1,12 +1,13 @@
 import Footer from '@/components/layouts/footer';
 import Header from '@/components/layouts/header';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
 interface WelcomeProps {
     appName?: string;
     laravelVersion?: string;
     phpVersion?: string;
+    baseUrl?: string;
 }
 
 interface EndpointItem {
@@ -193,7 +194,12 @@ export default function Welcome({
     appName = 'Curriculum Vitae API',
     laravelVersion = '11.x',
     phpVersion = '8.3',
+    baseUrl: propBaseUrl,
 }: WelcomeProps) {
+    const page = usePage();
+    const effectiveBaseUrl =
+        propBaseUrl ?? (page.props.baseUrl as string | undefined);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null);
@@ -226,10 +232,13 @@ export default function Welcome({
     };
 
     const getOrigin = () => {
+        if (effectiveBaseUrl) {
+            return effectiveBaseUrl;
+        }
         if (typeof window !== 'undefined') {
             return window.location.origin;
         }
-        return 'https://api.yourdomain.com';
+        return '';
     };
 
     return (
@@ -288,10 +297,7 @@ export default function Welcome({
                 </script>
             </Head>
 
-            <div
-                className="min-vh-100 bg-light d-flex flex-column text-body"
-                style={{ paddingTop: '75px' }}
-            >
+            <div className="min-vh-100 bg-light d-flex flex-column text-body">
                 {/* Top Navigation */}
                 <Header appName={appName} />
 
@@ -318,8 +324,11 @@ export default function Welcome({
                                 </p>
 
                                 <div className="d-flex flex-wrap align-items-center gap-2">
-                                    <div className="input-group input-group-sm w-auto shadow-sm">
-                                        <span className="input-group-text bg-light text-muted border-end-0 font-monospace">
+                                    <div
+                                        className="input-group input-group-sm shadow-sm flex-grow-1 flex-sm-grow-0"
+                                        style={{ maxWidth: '100%' }}
+                                    >
+                                        <span className="input-group-text bg-light text-muted border-end-0 font-monospace d-none d-sm-inline-flex">
                                             Base URL
                                         </span>
                                         <input
@@ -327,7 +336,8 @@ export default function Welcome({
                                             readOnly
                                             value={`${getOrigin()}/api`}
                                             className="form-control bg-light font-monospace"
-                                            style={{ minWidth: 230 }}
+                                            style={{ minWidth: 150 }}
+                                            aria-label="API Base URL"
                                         />
                                         <button
                                             type="button"
@@ -413,29 +423,25 @@ export default function Welcome({
                                             )}
                                         </button>
                                     </div>
-                                    <div className="card-body p-3 font-monospace small">
+                                    <div className="card-body p-3 font-monospace small overflow-x-auto text-nowrap">
                                         <div className="text-secondary mb-1">
                                             # 1. Fetch public profile
                                         </div>
                                         <div className="text-success">
-                                            curl -X GET &quot;{getOrigin()}
-                                            /api/profiles&quot; \
+                                            {`curl -X GET "${getOrigin()}/api/profiles" \\`}
                                         </div>
                                         <div className="text-success ps-3">
-                                            -H &quot;Accept:
-                                            application/json&quot;
+                                            {'-H "Accept: application/json"'}
                                         </div>
 
                                         <div className="text-secondary mb-1">
                                             # 2. Fetch public portfolio
                                         </div>
                                         <div className="text-info">
-                                            curl -X GET &quot;{getOrigin()}
-                                            /api/portfolios&quot; \
+                                            {`curl -X GET "${getOrigin()}/api/portfolios" \\`}
                                         </div>
                                         <div className="text-info ps-3">
-                                            -H &quot;Accept:
-                                            application/json&quot;
+                                            {'-H "Accept: application/json"'}
                                         </div>
 
                                         {/* <div className="text-secondary mt-3 mb-1">
@@ -575,11 +581,11 @@ export default function Welcome({
                         </div>
 
                         {/* Search & Category Filter */}
-                        <div className="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto">
-                            <div
-                                className="input-group input-group-sm"
-                                style={{ maxWidth: 280 }}
-                            >
+                        <div
+                            className="w-100 w-md-auto"
+                            style={{ maxWidth: 320 }}
+                        >
+                            <div className="input-group input-group-sm">
                                 <span className="input-group-text bg-white border-end-0">
                                     <i className="bi bi-search text-muted"></i>
                                 </span>
@@ -591,12 +597,14 @@ export default function Welcome({
                                     onChange={(e) =>
                                         setSearchQuery(e.target.value)
                                     }
+                                    aria-label="Filter endpoints"
                                 />
                                 {searchQuery && (
                                     <button
                                         type="button"
                                         className="btn btn-outline-secondary border-start-0"
                                         onClick={() => setSearchQuery('')}
+                                        aria-label="Clear filter"
                                     >
                                         <i className="bi bi-x"></i>
                                     </button>
@@ -606,12 +614,12 @@ export default function Welcome({
                     </div>
 
                     {/* Category Filter Pills */}
-                    <div className="d-flex flex-wrap gap-2 mb-4">
+                    <div className="d-flex flex-nowrap flex-sm-wrap gap-2 mb-4 overflow-x-auto pb-1">
                         {categories.map((cat) => (
                             <button
                                 key={cat}
                                 type="button"
-                                className={`btn btn-sm rounded-pill px-3 ${
+                                className={`btn btn-sm rounded-pill px-3 flex-shrink-0 ${
                                     selectedCategory === cat
                                         ? 'btn-dark'
                                         : 'btn-outline-secondary border-0 bg-white shadow-sm'
@@ -626,8 +634,11 @@ export default function Welcome({
                     {/* Endpoint List */}
                     <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
                         <div className="table-responsive">
-                            <table className="table table-hover align-middle mb-0">
-                                <thead className="table-light border-bottom text-uppercase text-muted fs-7">
+                            <table
+                                className="table table-hover align-middle mb-0"
+                                style={{ minWidth: 720 }}
+                            >
+                                <thead className="table-light border-bottom text-uppercase text-muted small">
                                     <tr>
                                         <th
                                             scope="col"

@@ -12,6 +12,7 @@ declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
             name: string;
+            baseUrl: string;
             auth: Auth;
             profile: ProfileSummary | null;
             socials: SocialItem[];

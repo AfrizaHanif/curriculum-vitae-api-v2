@@ -1,6 +1,14 @@
 @use 'bootstrap/scss/bootstrap';
 @use 'bootstrap-icons/font/bootstrap-icons.css';
 
+.fs-7 {
+    font-size: 0.8rem !important;
+}
+
+.fs-8 {
+    font-size: 0.72rem !important;
+}
+
 // @source '../views';
 // @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
