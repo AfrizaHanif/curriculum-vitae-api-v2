@@ -1,82 +1,65 @@
 name: Database Backup
 
 on:
-  schedule:
-    # Runs daily at 02:00 UTC (09:00 WIB)
-    - cron: '0 2 * * *'
-  workflow_dispatch:
+    schedule:
+        # Runs daily at 02:00 UTC (09:00 WIB)
+        - cron: "0 2 * * *"
+    workflow_dispatch:
 
 concurrency:
-  group: db-backup
-  cancel-in-progress: false
+    group: db-backup
+    cancel-in-progress: false
 
 jobs:
-  backup:
-    name: Backup Hostinger Database
-    runs-on: ubuntu-latest
+    backup:
+        name: Backup Hostinger Database
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.HOSTINGER_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT || '65002' }} -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+        steps:
+            - name: Configure SSH
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.HOSTINGER_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+                  chmod 600 ~/.ssh/id_rsa
+                  ssh-keyscan -p ${{ secrets.HOSTINGER_SSH_PORT || '65002' }} -H ${{ secrets.HOSTINGER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Create Remote Database Dump
-        id: dump
-        env:
-          HOST: ${{ secrets.HOSTINGER_HOST }}
-          USER: ${{ secrets.HOSTINGER_USER }}
-          PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
-          REMOTE_PATH: ${{ secrets.HOSTINGER_REMOTE_PATH }}
-        run: |
-          BACKUP_FILENAME="backup_$(date +'%Y_%m_%d_%H%M%S').sql.gz"
-          echo "filename=$BACKUP_FILENAME" >> $GITHUB_OUTPUT
+            - name: Create Remote Database Dump
+              id: dump
+              env:
+                  HOST: ${{ secrets.HOSTINGER_HOST }}
+                  USER: ${{ secrets.HOSTINGER_USER }}
+                  PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+                  REMOTE_PATH: ${{ secrets.HOSTINGER_REMOTE_PATH }}
+              run: |
+                  BACKUP_FILENAME="backup_$(date +'%Y_%m_%d_%H%M%S').sql.gz"
+                  echo "filename=$BACKUP_FILENAME" >> $GITHUB_OUTPUT
 
-          ssh -i ~/.ssh/id_rsa -p "$PORT" -o StrictHostKeyChecking=no "$USER@$HOST" "
-            set -e
-            cd '$REMOTE_PATH'
+                  ssh -i ~/.ssh/id_rsa -p "$PORT" -o StrictHostKeyChecking=no "$USER@$HOST" "
+                    set -e
+                    cd '$REMOTE_PATH'
 
-            if [ ! -f .env ]; then
-              echo '❌ Error: .env file not found in $REMOTE_PATH'
-              exit 1
-            fi
+                    if [ ! -f .env ]; then
+                      echo '❌ Error: .env file not found in $REMOTE_PATH'
+                      exit 1
+                    fi
 
-            # Extract database credentials safely from remote .env
-            DB_HOST=\$(grep -E '^DB_HOST=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
-            DB_PORT=\$(grep -E '^DB_PORT=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\" || echo '3306')
-            DB_NAME=\$(grep -E '^DB_DATABASE=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
-            DB_USER=\$(grep -E '^DB_USERNAME=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
-            DB_PASS=\$(grep -E '^DB_PASSWORD=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
+                    # Extract database credentials safely from remote .env
+                    DB_HOST=\$(grep -E '^DB_HOST=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
+                    DB_PORT=\$(grep -E '^DB_PORT=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\" || echo '3306')
+                    DB_NAME=\$(grep -E '^DB_DATABASE=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
+                    DB_USER=\$(grep -E '^DB_USERNAME=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
+                    DB_PASS=\$(grep -E '^DB_PASSWORD=' .env | cut -d '=' -f2- | tr -d '\"' | tr -d \"'\")
 
-            # Create backup directory outside public_html (in ~/backups/db)
-            BACKUP_DIR=\"\$HOME/backups/db\"
-            mkdir -p \"\$BACKUP_DIR\"
+                    # Create backup directory outside public_html (in ~/backups/db)
+                    BACKUP_DIR=\"\$HOME/backups/db\"
+                    mkdir -p \"\$BACKUP_DIR\"
 
-            echo \"Dumping database \$DB_NAME...\"
-            mysqldump --single-transaction --quick --skip-lock-tables \
-              -h \"\$DB_HOST\" -P \"\$DB_PORT\" -u \"\$DB_USER\" -p\"\$DB_PASS\" \"\$DB_NAME\" | gzip > \"\$BACKUP_DIR/$BACKUP_FILENAME\"
+                    echo \"Dumping database \$DB_NAME...\"
+                    mysqldump --single-transaction --quick --skip-lock-tables \
+                      -h \"\$DB_HOST\" -P \"\$DB_PORT\" -u \"\$DB_USER\" -p\"\$DB_PASS\" \"\$DB_NAME\" | gzip > \"\$BACKUP_DIR/$BACKUP_FILENAME\"
 
-            echo \"Backup saved to \$BACKUP_DIR/$BACKUP_FILENAME\"
+                    echo \"Backup saved to \$BACKUP_DIR/$BACKUP_FILENAME\"
 
-            # Auto-prune server backups older than 14 days
-            find \"\$BACKUP_DIR\" -type f -name '*.sql.gz' -mtime +14 -delete || true
-          "
-
-      - name: Download Backup from Hostinger
-        env:
-          HOST: ${{ secrets.HOSTINGER_HOST }}
-          USER: ${{ secrets.HOSTINGER_USER }}
-          PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
-          FILENAME: ${{ steps.dump.outputs.filename }}
-        run: |
-          mkdir -p ./downloads
-          scp -i ~/.ssh/id_rsa -P "$PORT" -o StrictHostKeyChecking=no "$USER@$HOST:~/backups/db/$FILENAME" ./downloads/
-
-      - name: Upload Backup to GitHub Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.dump.outputs.filename }}
-          path: ./downloads/${{ steps.dump.outputs.filename }}
-          retention-days: 30
+                    # Auto-prune server backups older than 14 days
+                    find \"\$BACKUP_DIR\" -type f -name '*.sql.gz' -mtime +14 -delete || true
+                  "
