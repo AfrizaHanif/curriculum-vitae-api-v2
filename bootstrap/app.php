@@ -25,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             TimezoneMiddleware::class,
         ]);
         $middleware->throttleApi();
-        $middleware->statefulApi();
+        // $middleware->statefulApi();
         $middleware->api(prepend: [
             SetNoCacheHeaders::class,
         ]);
