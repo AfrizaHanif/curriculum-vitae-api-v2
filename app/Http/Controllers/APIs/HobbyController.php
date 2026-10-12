@@ -7,6 +7,7 @@ use App\Http\Requests\StoreHobbyRequest;
 use App\Http\Requests\UpdateHobbyRequest;
 use App\Http\Resources\HobbyResource;
 use App\Models\Hobby;
+use App\Traits\HandlesBulkTrash;
 use App\Traits\HandlesResourceFiltering;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +19,7 @@ use Illuminate\Routing\Controllers\Middleware;
 
 class HobbyController extends Controller implements HasMiddleware
 {
-    use AuthorizesRequests, HandlesResourceFiltering;
+    use AuthorizesRequests, HandlesBulkTrash, HandlesResourceFiltering;
 
     public static function middleware(): array
     {

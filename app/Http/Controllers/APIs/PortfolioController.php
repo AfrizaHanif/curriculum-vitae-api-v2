@@ -7,6 +7,7 @@ use App\Http\Requests\StorePortfolioRequest;
 use App\Http\Requests\UpdatePortfolioRequest;
 use App\Http\Resources\PortfolioResource;
 use App\Models\Portfolio;
+use App\Traits\HandlesBulkTrash;
 use App\Traits\HandlesFileUploads;
 use App\Traits\HandlesResourceFiltering;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -21,7 +22,7 @@ use Illuminate\Support\Str;
 
 class PortfolioController extends Controller implements HasMiddleware
 {
-    use AuthorizesRequests, HandlesFileUploads, HandlesResourceFiltering;
+    use AuthorizesRequests, HandlesBulkTrash, HandlesFileUploads, HandlesResourceFiltering;
 
     public static function middleware(): array
     {

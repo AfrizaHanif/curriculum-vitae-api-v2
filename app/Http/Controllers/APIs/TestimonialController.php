@@ -7,6 +7,7 @@ use App\Http\Requests\StoreTestimonialRequest;
 use App\Http\Requests\UpdateTestimonialRequest;
 use App\Http\Resources\TestimonialResource;
 use App\Models\Testimonial;
+use App\Traits\HandlesBulkTrash;
 use App\Traits\HandlesResourceFiltering;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +19,7 @@ use Illuminate\Routing\Controllers\Middleware;
 
 class TestimonialController extends Controller implements HasMiddleware
 {
-    use AuthorizesRequests, HandlesResourceFiltering;
+    use AuthorizesRequests, HandlesBulkTrash, HandlesResourceFiltering;
 
     public static function middleware(): array
     {

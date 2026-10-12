@@ -7,7 +7,11 @@ use App\Http\Requests\StoreCaseStudyRequest;
 use App\Http\Requests\UpdateCaseStudyRequest;
 use App\Http\Resources\CaseStudyResource;
 use App\Models\CaseStudy;
+use App\Models\Profile;
+use App\Traits\HandlesBulkTrash;
 use App\Traits\HandlesResourceFiltering;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +22,7 @@ use Illuminate\Routing\Controllers\Middleware;
 
 class CaseStudyController extends Controller implements HasMiddleware
 {
-    use AuthorizesRequests, HandlesResourceFiltering;
+    use AuthorizesRequests, HandlesBulkTrash, HandlesResourceFiltering;
 
     public static function middleware(): array
     {
@@ -116,5 +120,16 @@ class CaseStudyController extends Controller implements HasMiddleware
 
         // Return as JSON
         return new CaseStudyResource($caseStudy);
+    }
+
+    /**
+     * Get the query for soft-deleted items belonging to the user's profile.
+     */
+    protected function getTrashedItemsQueryForProfile(Profile $userProfile): Builder|Relation
+    {
+        return CaseStudy::onlyTrashed()
+            ->whereHas('portfolio', function ($query) use ($userProfile): void {
+                $query->where('profile_id', $userProfile->id);
+            });
     }
 }

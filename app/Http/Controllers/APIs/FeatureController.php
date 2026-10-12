@@ -7,7 +7,13 @@ use App\Http\Requests\StoreFeatureRequest;
 use App\Http\Requests\UpdateFeatureRequest;
 use App\Http\Resources\FeatureResource;
 use App\Models\Feature;
+use App\Models\Portfolio;
+use App\Models\Profile;
+use App\Models\Project;
+use App\Traits\HandlesBulkTrash;
 use App\Traits\HandlesResourceFiltering;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +24,7 @@ use Illuminate\Routing\Controllers\Middleware;
 
 class FeatureController extends Controller implements HasMiddleware
 {
-    use AuthorizesRequests, HandlesResourceFiltering;
+    use AuthorizesRequests, HandlesBulkTrash, HandlesResourceFiltering;
 
     public static function middleware(): array
     {
@@ -117,5 +123,18 @@ class FeatureController extends Controller implements HasMiddleware
 
         // Return as JSON
         return new FeatureResource($feature);
+    }
+
+    /**
+     * Get the query for soft-deleted items belonging to the user's profile.
+     */
+    protected function getTrashedItemsQueryForProfile(Profile $userProfile): Builder|Relation
+    {
+        return Feature::onlyTrashed()
+            ->where(function ($query) use ($userProfile): void {
+                $query->whereHasMorph('featureable', [Portfolio::class, Project::class], function ($subQuery) use ($userProfile): void {
+                    $subQuery->where('profile_id', $userProfile->id);
+                });
+            });
     }
 }

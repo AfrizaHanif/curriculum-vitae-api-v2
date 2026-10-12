@@ -7,6 +7,7 @@ use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
+use App\Traits\HandlesBulkTrash;
 use App\Traits\HandlesFileUploads;
 use App\Traits\HandlesResourceFiltering;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -21,7 +22,7 @@ use Illuminate\Support\Str;
 
 class ProjectController extends Controller implements HasMiddleware
 {
-    use AuthorizesRequests, HandlesFileUploads, HandlesResourceFiltering;
+    use AuthorizesRequests, HandlesBulkTrash, HandlesFileUploads, HandlesResourceFiltering;
 
     public static function middleware(): array
     {

@@ -16,9 +16,7 @@ use App\Http\Controllers\APIs\SetupController;
 use App\Http\Controllers\APIs\SkillController;
 use App\Http\Controllers\APIs\SocialController;
 use App\Http\Controllers\APIs\TestimonialController;
-use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function (): JsonResponse {
@@ -58,6 +56,8 @@ $apiResources = [
 ];
 
 foreach ($apiResources as $name => $controller) {
+    Route::post("$name/restore-all", [$controller, 'restoreAll'])->name("$name.restore-all");
+    Route::delete("$name/force-delete-all", [$controller, 'forceDeleteAll'])->name("$name.force-delete-all");
     Route::post("$name/{id}/restore", [$controller, 'restore'])->name("$name.restore")->withTrashed();
     Route::apiResource($name, $controller)->withTrashed(['destroy']);
 }

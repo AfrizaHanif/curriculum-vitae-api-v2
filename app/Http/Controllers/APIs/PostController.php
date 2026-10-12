@@ -7,6 +7,7 @@ use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
+use App\Traits\HandlesBulkTrash;
 use App\Traits\HandlesFileUploads;
 use App\Traits\HandlesResourceFiltering;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -20,7 +21,7 @@ use Illuminate\Support\Str;
 
 class PostController extends Controller implements HasMiddleware
 {
-    use AuthorizesRequests, HandlesFileUploads, HandlesResourceFiltering;
+    use AuthorizesRequests, HandlesBulkTrash, HandlesFileUploads, HandlesResourceFiltering;
 
     public static function middleware(): array
     {

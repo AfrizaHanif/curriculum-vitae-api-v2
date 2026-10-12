@@ -7,6 +7,7 @@ use App\Http\Requests\StoreCertificateRequest;
 use App\Http\Requests\UpdateCertificateRequest;
 use App\Http\Resources\CertificateResource;
 use App\Models\Certificate;
+use App\Traits\HandlesBulkTrash;
 use App\Traits\HandlesFileUploads;
 use App\Traits\HandlesResourceFiltering;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -19,7 +20,7 @@ use Illuminate\Routing\Controllers\Middleware;
 
 class CertificateController extends Controller implements HasMiddleware
 {
-    use AuthorizesRequests, HandlesFileUploads, HandlesResourceFiltering;
+    use AuthorizesRequests, HandlesBulkTrash, HandlesFileUploads, HandlesResourceFiltering;
 
     public static function middleware(): array
     {

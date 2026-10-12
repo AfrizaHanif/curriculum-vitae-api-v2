@@ -7,6 +7,7 @@ use App\Http\Requests\StoreExpertiseRequest;
 use App\Http\Requests\UpdateExpertiseRequest;
 use App\Http\Resources\ExpertiseResource;
 use App\Models\Expertise;
+use App\Traits\HandlesBulkTrash;
 use App\Traits\HandlesResourceFiltering;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +19,7 @@ use Illuminate\Routing\Controllers\Middleware;
 
 class ExpertiseController extends Controller implements HasMiddleware
 {
-    use AuthorizesRequests, HandlesResourceFiltering;
+    use AuthorizesRequests, HandlesBulkTrash, HandlesResourceFiltering;
 
     public static function middleware(): array
     {
