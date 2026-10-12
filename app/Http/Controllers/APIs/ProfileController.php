@@ -34,6 +34,7 @@ class ProfileController extends Controller implements HasMiddleware
 
         $query = Profile::query();
 
+        // Scope to the authenticated user's profile if logged in; otherwise query all profiles
         if ($user?->profile?->id) {
             $query->where('id', $user->profile->id);
         }
@@ -48,7 +49,6 @@ class ProfileController extends Controller implements HasMiddleware
      */
     public function show(Profile $profile): ProfileResource
     {
-        // Return as JSON
         return new ProfileResource($profile);
     }
 
@@ -57,11 +57,7 @@ class ProfileController extends Controller implements HasMiddleware
      */
     public function update(UpdateProfileRequest $request, Profile $profile): ProfileResource
     {
-        // Get validated data
         $data = $request->validated();
-
-        // Upload files if exist
-        // Guide: $this->uploadFile(request, key, folder, oldPath, disk, customFilename, slug)
 
         $data['casual_photo'] = $this->uploadFile(
             $request,
@@ -89,6 +85,7 @@ class ProfileController extends Controller implements HasMiddleware
         );
         $currentResume = is_array($profile->resume) ? $profile->resume : [];
 
+        // Handle localized resume file uploads (e.g. multiple language editions)
         if ($request->hasFile('resume')) {
             $resumeFiles = $request->file('resume');
             $resumeData = $currentResume;
@@ -137,10 +134,8 @@ class ProfileController extends Controller implements HasMiddleware
             unset($data['resume']);
         }
 
-        // Update profile data
         $profile->update($data);
 
-        // Return as JSON
         return new ProfileResource($profile);
     }
 }

@@ -33,6 +33,7 @@ class SkillController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public skills
         $query = $request->user()?->profile?->skills()->getQuery() ?? Skill::query();
 
         match ($request->query('trashed')) {
@@ -51,21 +52,15 @@ class SkillController extends Controller implements HasMiddleware
      */
     public function store(StoreSkillRequest $request): JsonResponse|SkillResource
     {
-        // Get user profile data
         $userProfile = $request->user()?->profile;
 
-        // Check user profile is exist or not
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Get validated data
         $skillData = $request->validated();
-
-        // Create skill data
         $skill = $userProfile->skills()->create($skillData);
 
-        // Return as JSON
         return new SkillResource($skill);
     }
 
@@ -74,7 +69,6 @@ class SkillController extends Controller implements HasMiddleware
      */
     public function show(Skill $skill): SkillResource
     {
-        // Return as JSON
         return new SkillResource($skill);
     }
 
@@ -83,10 +77,8 @@ class SkillController extends Controller implements HasMiddleware
      */
     public function update(UpdateSkillRequest $request, Skill $skill): SkillResource
     {
-        // Update skill data
         $skill->update($request->validated());
 
-        // Return as JSON
         return new SkillResource($skill);
     }
 
@@ -107,16 +99,12 @@ class SkillController extends Controller implements HasMiddleware
      */
     public function restore(string $id): SkillResource
     {
-        // Find deleted skill by ID
         $skill = Skill::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $skill);
 
-        // Restore skill data
         $skill->restore();
 
-        // Return as JSON
         return new SkillResource($skill);
     }
 }

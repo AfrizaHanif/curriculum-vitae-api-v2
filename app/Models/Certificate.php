@@ -56,8 +56,7 @@ class Certificate extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'CER-'; // HasCustomId
+    protected string $idPrefix = 'CER-';
 
     public const STORAGE_IMAGE_PATH = 'images/certificates';
 

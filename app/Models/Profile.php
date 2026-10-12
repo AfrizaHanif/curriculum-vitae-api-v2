@@ -68,8 +68,7 @@ class Profile extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'PRO-'; // HasCustomId
+    protected string $idPrefix = 'PRO-';
 
     public const STORAGE_PATH = 'images';
 

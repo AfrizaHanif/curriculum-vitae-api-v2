@@ -33,6 +33,7 @@ class TestimonialController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public testimonials
         $query = $request->user()?->profile?->testimonials()->getQuery() ?? Testimonial::query();
 
         match ($request->query('trashed')) {
@@ -51,21 +52,15 @@ class TestimonialController extends Controller implements HasMiddleware
      */
     public function store(StoreTestimonialRequest $request): JsonResponse|TestimonialResource
     {
-        // Get user profile data
         $userProfile = $request->user()?->profile;
 
-        // Check user profile is exist or not
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Get validated data
         $testimonialData = $request->validated();
-
-        // Create testimonial data
         $testimonial = $userProfile->testimonials()->create($testimonialData);
 
-        // Return as JSON
         return new TestimonialResource($testimonial);
     }
 
@@ -74,7 +69,6 @@ class TestimonialController extends Controller implements HasMiddleware
      */
     public function show(Testimonial $testimonial): TestimonialResource
     {
-        // Return as JSON
         return new TestimonialResource($testimonial);
     }
 
@@ -83,10 +77,8 @@ class TestimonialController extends Controller implements HasMiddleware
      */
     public function update(UpdateTestimonialRequest $request, Testimonial $testimonial): TestimonialResource
     {
-        // Update testimonial data
         $testimonial->update($request->validated());
 
-        // Return as JSON
         return new TestimonialResource($testimonial);
     }
 
@@ -107,16 +99,12 @@ class TestimonialController extends Controller implements HasMiddleware
      */
     public function restore(string $id): TestimonialResource
     {
-        // Find deleted testimonial by ID
         $testimonial = Testimonial::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $testimonial);
 
-        // Restore testimonial data
         $testimonial->restore();
 
-        // Return as JSON
         return new TestimonialResource($testimonial);
     }
 }

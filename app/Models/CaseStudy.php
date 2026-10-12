@@ -46,8 +46,7 @@ class CaseStudy extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'CAS-'; // HasCustomId
+    protected string $idPrefix = 'CAS-';
 
     /**
      * Default model attributes.

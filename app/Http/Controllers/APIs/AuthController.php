@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Authenticate the user and generate a new API token.
      */
     public function login(Request $request): JsonResponse
     {
@@ -47,7 +47,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Revoke the current access token for the authenticated user.
      */
     public function logout(Request $request): JsonResponse
     {
@@ -56,6 +56,7 @@ class AuthController extends Controller
         if ($user) {
             $currentToken = $user->currentAccessToken();
 
+            // Guard against TransientToken instances during stateful requests or unit tests
             if ($currentToken && method_exists($currentToken, 'delete')) {
                 $currentToken->delete();
             }

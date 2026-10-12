@@ -86,8 +86,7 @@ class Project extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'PRJ-'; // HasCustomId
+    protected string $idPrefix = 'PRJ-';
 
     public const STORAGE_PATH = 'images/projects';
 
@@ -97,7 +96,7 @@ class Project extends BaseAPI
     public bool $deleteFilesOnSoftDelete = false;
 
     /**
-     * The "booted" method of the model.
+     * Cascade permanent deletions to related child features.
      */
     protected static function booted(): void
     {

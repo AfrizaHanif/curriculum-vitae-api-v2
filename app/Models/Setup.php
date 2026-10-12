@@ -30,8 +30,7 @@ class Setup extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'SET-'; // HasCustomId
+    protected string $idPrefix = 'SET-';
 
     protected int $idPadding = 3;
 

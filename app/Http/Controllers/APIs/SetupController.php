@@ -33,6 +33,7 @@ class SetupController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public setups
         $query = $request->user()?->profile?->setups()->getQuery() ?? Setup::query();
 
         match ($request->query('trashed')) {
@@ -51,21 +52,15 @@ class SetupController extends Controller implements HasMiddleware
      */
     public function store(StoreSetupRequest $request): JsonResponse|SetupResource
     {
-        // Get user profile data
         $userProfile = $request->user()?->profile;
 
-        // Check user profile is exist or not
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Get validated data
         $setupData = $request->validated();
-
-        // Create setup data
         $setup = $userProfile->setups()->create($setupData);
 
-        // Return as JSON
         return new SetupResource($setup);
     }
 
@@ -74,7 +69,6 @@ class SetupController extends Controller implements HasMiddleware
      */
     public function show(Setup $setup): SetupResource
     {
-        // Return as JSON
         return new SetupResource($setup);
     }
 
@@ -83,10 +77,8 @@ class SetupController extends Controller implements HasMiddleware
      */
     public function update(UpdateSetupRequest $request, Setup $setup): SetupResource
     {
-        // Update setup data
         $setup->update($request->validated());
 
-        // Return as JSON
         return new SetupResource($setup);
     }
 
@@ -107,16 +99,12 @@ class SetupController extends Controller implements HasMiddleware
      */
     public function restore(string $id): SetupResource
     {
-        // Find deleted setup by ID
         $setup = Setup::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $setup);
 
-        // Restore setup data
         $setup->restore();
 
-        // Return as JSON
         return new SetupResource($setup);
     }
 }

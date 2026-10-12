@@ -33,6 +33,7 @@ class ExpertiseController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public expertises
         $query = ($request->user()?->profile?->expertises()->getQuery() ?? Expertise::query())->with('portfolios');
 
         match ($request->query('trashed')) {
@@ -51,20 +52,16 @@ class ExpertiseController extends Controller implements HasMiddleware
      */
     public function store(StoreExpertiseRequest $request): JsonResponse|ExpertiseResource
     {
-        // Get user profile data
         $userProfile = $request->user()?->profile;
 
-        // Check user profile is exist or not
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Get validated data
         $validated = $request->validated();
         $portfolioIds = $validated['portfolio_ids'] ?? [];
         unset($validated['portfolio_ids']);
 
-        // Create expertise data
         $expertise = $userProfile->expertises()->create($validated);
 
         if (! empty($portfolioIds)) {
@@ -73,7 +70,6 @@ class ExpertiseController extends Controller implements HasMiddleware
 
         $expertise->load('portfolios');
 
-        // Return as JSON
         return new ExpertiseResource($expertise);
     }
 
@@ -84,7 +80,6 @@ class ExpertiseController extends Controller implements HasMiddleware
     {
         $expertise->loadMissing('portfolios');
 
-        // Return as JSON
         return new ExpertiseResource($expertise);
     }
 
@@ -100,11 +95,9 @@ class ExpertiseController extends Controller implements HasMiddleware
             unset($validated['portfolio_ids']);
         }
 
-        // Update expertise data
         $expertise->update($validated);
         $expertise->load('portfolios');
 
-        // Return as JSON
         return new ExpertiseResource($expertise);
     }
 
@@ -125,16 +118,12 @@ class ExpertiseController extends Controller implements HasMiddleware
      */
     public function restore(string $id): ExpertiseResource
     {
-        // Find deleted skill by ID
         $expertise = Expertise::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $expertise);
 
-        // Restore expertise data
         $expertise->restore();
 
-        // Return as JSON
         return new ExpertiseResource($expertise);
     }
 }

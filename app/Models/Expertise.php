@@ -37,8 +37,7 @@ class Expertise extends BaseAPI
     /** @use HasFactory<ExpertiseFactory> */
     use HasFactory, SoftDeletes;
 
-    // Custom Properties
-    protected string $idPrefix = 'XPT-'; // HasCustomId
+    protected string $idPrefix = 'XPT-';
 
     protected int $idPadding = 3;
 

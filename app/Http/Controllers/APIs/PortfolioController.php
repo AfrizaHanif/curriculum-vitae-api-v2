@@ -36,6 +36,7 @@ class PortfolioController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public portfolios
         $query = ($request->user()?->profile?->portfolios()->getQuery() ?? Portfolio::query())
             ->with(['features', 'caseStudies', 'expertises']);
 

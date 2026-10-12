@@ -33,6 +33,7 @@ class ExperienceController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public experiences
         $query = $request->user()?->profile?->experiences()->getQuery() ?? Experience::query();
 
         match ($request->query('trashed')) {
@@ -51,21 +52,15 @@ class ExperienceController extends Controller implements HasMiddleware
      */
     public function store(StoreExperienceRequest $request): JsonResponse|ExperienceResource
     {
-        // Get user profile data
         $userProfile = $request->user()?->profile;
 
-        // Check user profile is exist or not
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Get validated data
         $experienceData = $request->validated();
-
-        // Create experience data
         $experience = $userProfile->experiences()->create($experienceData);
 
-        // Return as JSON
         return new ExperienceResource($experience);
     }
 
@@ -74,7 +69,6 @@ class ExperienceController extends Controller implements HasMiddleware
      */
     public function show(Experience $experience): ExperienceResource
     {
-        // Return as JSON
         return new ExperienceResource($experience);
     }
 
@@ -83,13 +77,9 @@ class ExperienceController extends Controller implements HasMiddleware
      */
     public function update(UpdateExperienceRequest $request, Experience $experience): ExperienceResource
     {
-        // Get validated data
         $experienceData = $request->validated();
-
-        // Update experience data
         $experience->update($experienceData);
 
-        // Return as JSON
         return new ExperienceResource($experience);
     }
 
@@ -110,16 +100,12 @@ class ExperienceController extends Controller implements HasMiddleware
      */
     public function restore(string $id): ExperienceResource
     {
-        // Find deleted experience by ID
         $experience = Experience::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $experience);
 
-        // Restore experience data
         $experience->restore();
 
-        // Return as JSON
         return new ExperienceResource($experience);
     }
 }

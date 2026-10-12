@@ -22,8 +22,7 @@ class Social extends BaseAPI
     /** @use HasFactory<SocialFactory> */
     use HasFactory, SoftDeletes;
 
-    // Custom Properties
-    protected string $idPrefix = 'SOC-'; // HasCustomId
+    protected string $idPrefix = 'SOC-';
 
     protected int $idPadding = 3;
 

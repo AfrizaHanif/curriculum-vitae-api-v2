@@ -23,7 +23,6 @@ class PortfolioFactory extends Factory
 
         return [
             'profile_id' => Profile::factory(),
-            // 'parent_id' => null,
             'title' => $title,
             'slug' => Str::slug($title),
             'type' => fake()->randomElement(['Academic Project', 'Personal Project', 'Commercial Project']),

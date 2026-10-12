@@ -66,8 +66,7 @@ class Education extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'EDU-'; // HasCustomId
+    protected string $idPrefix = 'EDU-';
 
     protected int $idPadding = 3;
 

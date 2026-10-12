@@ -41,8 +41,7 @@ class Skill extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'SKI-'; // HasCustomId
+    protected string $idPrefix = 'SKI-';
 
     /**
      * @return BelongsTo<Profile, $this>

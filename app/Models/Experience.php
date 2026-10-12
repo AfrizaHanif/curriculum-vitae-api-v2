@@ -61,8 +61,7 @@ class Experience extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'EXP-'; // HasCustomId
+    protected string $idPrefix = 'EXP-';
 
     protected int $idPadding = 3;
 

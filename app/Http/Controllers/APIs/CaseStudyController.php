@@ -36,6 +36,7 @@ class CaseStudyController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public case studies
         $query = $request->user()?->profile?->caseStudies()->getQuery() ?? CaseStudy::query();
 
         match ($request->query('trashed')) {
@@ -54,17 +55,15 @@ class CaseStudyController extends Controller implements HasMiddleware
      */
     public function store(StoreCaseStudyRequest $request): JsonResponse|CaseStudyResource
     {
-        // Get data
         $userProfile = $request->user()?->profile;
 
-        // Check user profile
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Get validated data
         $caseStudyData = $request->validated();
 
+        // Ensure the portfolio belongs to the user to prevent cross-account attachment (IDOR protection)
         $portfolio = $userProfile->portfolios()->findOrFail($caseStudyData['portfolio_id']);
         $caseStudy = $portfolio->caseStudies()->create($caseStudyData);
 
@@ -76,7 +75,6 @@ class CaseStudyController extends Controller implements HasMiddleware
      */
     public function show(CaseStudy $caseStudy): CaseStudyResource
     {
-        // Return as JSON
         return new CaseStudyResource($caseStudy);
     }
 
@@ -85,10 +83,8 @@ class CaseStudyController extends Controller implements HasMiddleware
      */
     public function update(UpdateCaseStudyRequest $request, CaseStudy $caseStudy): CaseStudyResource
     {
-        // Update case study data
         $caseStudy->update($request->validated());
 
-        // Return as JSON
         return new CaseStudyResource($caseStudy);
     }
 
@@ -109,16 +105,12 @@ class CaseStudyController extends Controller implements HasMiddleware
      */
     public function restore(string $id): CaseStudyResource
     {
-        // Find deleted case study by ID
         $caseStudy = CaseStudy::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $caseStudy);
 
-        // Restore case study
         $caseStudy->restore();
 
-        // Return as JSON
         return new CaseStudyResource($caseStudy);
     }
 

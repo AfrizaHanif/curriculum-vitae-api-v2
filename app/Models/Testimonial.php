@@ -22,8 +22,7 @@ class Testimonial extends BaseAPI
     /** @use HasFactory<TestimonialFactory> */
     use HasFactory, SoftDeletes;
 
-    // Custom Properties
-    protected string $idPrefix = 'TES-'; // HasCustomId
+    protected string $idPrefix = 'TES-';
 
     protected int $idPadding = 3;
 

@@ -33,6 +33,7 @@ class HobbyController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public hobbies
         $query = $request->user()?->profile?->hobbies()->getQuery() ?? Hobby::query();
 
         match ($request->query('trashed')) {
@@ -51,21 +52,15 @@ class HobbyController extends Controller implements HasMiddleware
      */
     public function store(StoreHobbyRequest $request): JsonResponse|HobbyResource
     {
-        // Get user profile
         $userProfile = $request->user()?->profile;
 
-        // Check user profile is exist or not
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Validate request
         $hobbyData = $request->validated();
-
-        // Create hobby
         $hobby = $userProfile->hobbies()->create($hobbyData);
 
-        // Return as JSON
         return new HobbyResource($hobby);
     }
 
@@ -74,7 +69,6 @@ class HobbyController extends Controller implements HasMiddleware
      */
     public function show(Hobby $hobby): HobbyResource
     {
-        // Return as JSON
         return new HobbyResource($hobby);
     }
 
@@ -83,10 +77,8 @@ class HobbyController extends Controller implements HasMiddleware
      */
     public function update(UpdateHobbyRequest $request, Hobby $hobby): HobbyResource
     {
-        // Update hobby
         $hobby->update($request->validated());
 
-        // Return as JSON
         return new HobbyResource($hobby);
     }
 
@@ -107,16 +99,12 @@ class HobbyController extends Controller implements HasMiddleware
      */
     public function restore(string $id): HobbyResource
     {
-        // Find deleted hobby by ID
         $hobby = Hobby::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $hobby);
 
-        // Restore hobby
         $hobby->restore();
 
-        // Return as JSON
         return new HobbyResource($hobby);
     }
 }

@@ -33,6 +33,7 @@ class EducationController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public educations
         $query = $request->user()?->profile?->educations()->getQuery() ?? Education::query();
 
         match ($request->query('trashed')) {
@@ -51,21 +52,15 @@ class EducationController extends Controller implements HasMiddleware
      */
     public function store(StoreEducationRequest $request): JsonResponse|EducationResource
     {
-        // Get user profile data
         $userProfile = $request->user()?->profile;
 
-        // Check user profile is exist or not
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Get validated data
         $educationData = $request->validated();
-
-        // Create education data
         $education = $userProfile->educations()->create($educationData);
 
-        // Return as JSON
         return new EducationResource($education);
     }
 
@@ -74,7 +69,6 @@ class EducationController extends Controller implements HasMiddleware
      */
     public function show(Education $education): EducationResource
     {
-        // Return as JSON
         return new EducationResource($education);
     }
 
@@ -83,13 +77,9 @@ class EducationController extends Controller implements HasMiddleware
      */
     public function update(UpdateEducationRequest $request, Education $education): EducationResource
     {
-        // Get validated data
         $educationData = $request->validated();
-
-        // Update education data
         $education->update($educationData);
 
-        // Return as JSON
         return new EducationResource($education);
     }
 
@@ -110,16 +100,12 @@ class EducationController extends Controller implements HasMiddleware
      */
     public function restore(string $id): EducationResource
     {
-        // Find deleted education by ID
         $education = Education::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $education);
 
-        // Restore education data
         $education->restore();
 
-        // Return as JSON
         return new EducationResource($education);
     }
 }

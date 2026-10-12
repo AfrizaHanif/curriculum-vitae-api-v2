@@ -36,6 +36,7 @@ class ProjectController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public projects
         $query = ($request->user()?->profile?->projects()->getQuery() ?? Project::query())
             ->with(['features', 'portfolio']);
 

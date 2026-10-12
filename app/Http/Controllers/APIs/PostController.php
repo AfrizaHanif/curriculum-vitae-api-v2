@@ -35,6 +35,7 @@ class PostController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public posts
         $query = $request->user()?->profile?->posts()->getQuery() ?? Post::query();
 
         match ($request->query('trashed')) {

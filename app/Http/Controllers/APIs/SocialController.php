@@ -33,6 +33,7 @@ class SocialController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public socials
         $query = $request->user()?->profile?->socials()->getQuery() ?? Social::query();
 
         match ($request->query('trashed')) {
@@ -51,21 +52,15 @@ class SocialController extends Controller implements HasMiddleware
      */
     public function store(StoreSocialRequest $request): JsonResponse|SocialResource
     {
-        // Get user profile data
         $userProfile = $request->user()?->profile;
 
-        // Check user profile is exist or not
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Get validated data
         $socialData = $request->validated();
-
-        // Create social data
         $social = $userProfile->socials()->create($socialData);
 
-        // Return as JSON
         return new SocialResource($social);
     }
 
@@ -74,7 +69,6 @@ class SocialController extends Controller implements HasMiddleware
      */
     public function show(Social $social): SocialResource
     {
-        // Return as JSON
         return new SocialResource($social);
     }
 
@@ -83,10 +77,8 @@ class SocialController extends Controller implements HasMiddleware
      */
     public function update(UpdateSocialRequest $request, Social $social): SocialResource
     {
-        // Update social data
         $social->update($request->validated());
 
-        // Return as JSON
         return new SocialResource($social);
     }
 
@@ -107,16 +99,12 @@ class SocialController extends Controller implements HasMiddleware
      */
     public function restore(string $id): SocialResource
     {
-        // Find deleted social by ID
         $social = Social::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $social);
 
-        // Restore social data
         $social->restore();
 
-        // Return as JSON
         return new SocialResource($social);
     }
 }

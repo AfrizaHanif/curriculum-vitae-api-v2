@@ -7,12 +7,16 @@ use App\Traits\HasFileCleanup;
 use App\Traits\HasLogLabel;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Base abstract model for curriculum vitae API resources.
+ *
+ * Provides non-incrementing string primary keys (custom prefixed IDs),
+ * automatic storage file cleanup on deletion, and activity log labels.
+ */
 abstract class BaseAPI extends Model
 {
-    // Traits used by model (Can be found in app/Traits)
     use HasCustomId, HasFileCleanup, HasLogLabel;
 
-    // Details of model
     protected $primaryKey = 'id';
 
     public $incrementing = false;

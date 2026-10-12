@@ -44,8 +44,7 @@ class Feature extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'FEA-'; // HasCustomId
+    protected string $idPrefix = 'FEA-';
 
     protected int $idPadding = 3;
 

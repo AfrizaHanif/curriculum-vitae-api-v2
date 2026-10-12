@@ -36,8 +36,7 @@ class Post extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'BLG-'; // HasCustomId
+    protected string $idPrefix = 'BLG-';
 
     public const STORAGE_PATH = 'images/blogs';
 

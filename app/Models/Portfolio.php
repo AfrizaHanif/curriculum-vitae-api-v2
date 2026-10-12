@@ -17,7 +17,6 @@ use Illuminate\Support\Carbon;
 /**
  * @property string $id
  * @property string $profile_id
-//  * @property string|null $parent_id
  * @property string $title
  * @property string $slug
  * @property string $type
@@ -36,8 +35,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Profile $profile
-//  * @property-read Portfolio|null $parentPortfolio
-//  * @property-read Collection<int, Portfolio> $childPortfolios
  * @property-read Collection<int, Project> $projects
  * @property-read Collection<int, CaseStudy> $caseStudies
  * @property-read Collection<int, Feature> $features
@@ -47,7 +44,6 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'id',
     'profile_id',
-    // 'parent_id',
     'title',
     'slug',
     'type',
@@ -91,8 +87,7 @@ class Portfolio extends BaseAPI
         ];
     }
 
-    // Custom Properties
-    protected string $idPrefix = 'POR-'; // HasCustomId
+    protected string $idPrefix = 'POR-';
 
     public const STORAGE_PATH = 'images/portfolios';
 
@@ -102,7 +97,7 @@ class Portfolio extends BaseAPI
     public bool $deleteFilesOnSoftDelete = false;
 
     /**
-     * The "booted" method of the model.
+     * Cascade permanent deletions to related child features and projects.
      */
     protected static function booted(): void
     {
@@ -121,16 +116,6 @@ class Portfolio extends BaseAPI
     {
         return $this->belongsTo(Profile::class);
     }
-
-    // public function parentPortfolio(): BelongsTo
-    // {
-    //     return $this->belongsTo(self::class, 'parent_id');
-    // }
-
-    // public function childPortfolios(): HasMany
-    // {
-    //     return $this->hasMany(self::class, 'parent_id');
-    // }
 
     /**
      * @return HasMany<Project, $this>

@@ -21,8 +21,7 @@ class Hobby extends BaseAPI
     /** @use HasFactory<HobbyFactory> */
     use HasFactory, SoftDeletes;
 
-    // Custom Properties
-    protected string $idPrefix = 'HOB-'; // HasCustomId
+    protected string $idPrefix = 'HOB-';
 
     protected int $idPadding = 3;
 

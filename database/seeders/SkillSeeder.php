@@ -124,10 +124,6 @@ class SkillSeeder extends Seeder
             ],
         ];
 
-        // foreach ($skills as $skill) {
-        //     // Skill::updateOrCreate(['id' => $skill['id']], $skill);
-        // }
-
         Skill::upsert(
             $skills,
             uniqueBy: ['id'],

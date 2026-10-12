@@ -34,6 +34,7 @@ class CertificateController extends Controller implements HasMiddleware
      */
     public function index(Request $request): AnonymousResourceCollection
     {
+        // Scope to the authenticated user's profile if logged in; otherwise query all public certificates
         $query = $request->user()?->profile?->certificates()->getQuery() ?? Certificate::query();
 
         match ($request->query('trashed')) {
@@ -52,18 +53,14 @@ class CertificateController extends Controller implements HasMiddleware
      */
     public function store(StoreCertificateRequest $request): JsonResponse|CertificateResource
     {
-        // Get user profile
         $userProfile = $request->user()?->profile;
 
-        // Check user profile
         if (! $userProfile) {
             return response()->json(['message' => 'Profile not found.'], 404);
         }
 
-        // Get validated data
         $validated = $request->validated();
 
-        // Upload file if exist
         if ($request->hasFile('file')) {
             $ext = strtolower($request->file('file')->extension());
             $folder = ($ext === 'pdf') ? Certificate::STORAGE_PDF_PATH : Certificate::STORAGE_IMAGE_PATH;
@@ -73,10 +70,8 @@ class CertificateController extends Controller implements HasMiddleware
             $validated['file'] = $this->uploadFile($request, 'file', $folder, null, 'public', $customName);
         }
 
-        // Create certificate
         $certificate = $userProfile->certificates()->create($validated);
 
-        // Return as JSON
         return new CertificateResource($certificate);
     }
 
@@ -93,10 +88,8 @@ class CertificateController extends Controller implements HasMiddleware
      */
     public function update(UpdateCertificateRequest $request, Certificate $certificate): CertificateResource
     {
-        // Get validated data
         $data = $request->validated();
 
-        // Upload file if exist
         if ($request->hasFile('file')) {
             $idNum = preg_replace('/[^0-9]/', '', (string) $certificate->id);
             $ext = strtolower($request->file('file')->extension());
@@ -113,10 +106,8 @@ class CertificateController extends Controller implements HasMiddleware
             );
         }
 
-        // Update certificate
         $certificate->update($data);
 
-        // Return as JSON
         return new CertificateResource($certificate);
     }
 
@@ -137,16 +128,12 @@ class CertificateController extends Controller implements HasMiddleware
      */
     public function restore(string $id): CertificateResource
     {
-        // Find deleted certificate by ID
         $certificate = Certificate::onlyTrashed()->findOrFail($id);
 
-        // Authorize user
         $this->authorize('restore', $certificate);
 
-        // Restore certificate
         $certificate->restore();
 
-        // Return as JSON
         return new CertificateResource($certificate);
     }
 }

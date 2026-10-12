@@ -28,7 +28,6 @@ class StorePortfolioRequest extends FormRequest
         $isVideoFile = $this->file('video') instanceof UploadedFile;
 
         return [
-            // 'parent_id' => ['sometimes', 'nullable', 'exists:portfolios,id'],
             'title' => ['required', 'string', 'max:255', 'unique:portfolios,title'],
             'slug' => ['sometimes', 'nullable', 'string', 'max:255', 'unique:portfolios,slug'],
             'type' => ['required', 'string', 'max:255'],
