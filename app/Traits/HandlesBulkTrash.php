@@ -31,8 +31,10 @@ trait HandlesBulkTrash
         $items = $query->get();
         $count = $items->count();
 
-        $items->each(function ($item): void {
-            $item->restore();
+        $items->each(function (object $item): void {
+            if (method_exists($item, 'restore')) {
+                $item->restore();
+            }
         });
 
         return response()->json([
@@ -91,4 +93,3 @@ trait HandlesBulkTrash
         return Str::camel(Str::plural($baseName));
     }
 }
-

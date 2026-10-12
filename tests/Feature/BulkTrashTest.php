@@ -195,4 +195,3 @@ test('user can restore all and force delete all case studies and features', func
     $this->deleteJson('/api/features/force-delete-all')->assertOk()->assertJsonPath('count', 1);
     $this->assertModelMissing($feature);
 });
-
