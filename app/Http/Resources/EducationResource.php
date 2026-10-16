@@ -27,6 +27,7 @@ class EducationResource extends JsonResource
             'degree' => $this->degree,
             'major' => $this->major,
             'gpa' => $this->gpa,
+            'max_gpa' => $this->max_gpa,
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
             'start_period' => $this->start_period?->format('Y-m-d') ?? $this->start_period,

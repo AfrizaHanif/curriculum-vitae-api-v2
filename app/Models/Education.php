@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $degree
  * @property string $major
  * @property float|null $gpa
+ * @property float|null $max_gpa
  * @property EducationStatus $status
  * @property Carbon $start_period
  * @property Carbon|null $finish_period
@@ -42,6 +43,7 @@ use Illuminate\Support\Carbon;
     'degree',
     'major',
     'gpa',
+    'max_gpa',
     'status',
     'start_period',
     'finish_period',
@@ -60,6 +62,7 @@ class Education extends BaseAPI
             'type' => EducationType::class,
             'status' => EducationStatus::class,
             'gpa' => 'float',
+            'max_gpa' => 'float',
             'start_period' => 'date',
             'finish_period' => 'date',
             'description' => 'array',

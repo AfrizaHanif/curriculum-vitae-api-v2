@@ -28,6 +28,7 @@ class EducationFactory extends Factory
             'degree' => fake()->randomElement(['B.Sc', 'M.Sc', 'S.Kom', 'Diploma']),
             'major' => fake()->words(2, true).' Engineering',
             'gpa' => fake()->randomFloat(2, 3.0, 4.0),
+            'max_gpa' => 4.0,
             'status' => fake()->randomElement(EducationStatus::cases())->value,
             'start_period' => fake()->date(),
             'finish_period' => fake()->date(),

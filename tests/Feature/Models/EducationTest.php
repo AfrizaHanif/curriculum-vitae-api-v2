@@ -154,3 +154,50 @@ test('user cannot delete another user education', function () {
     $response = $this->deleteJson("/api/educations/{$otherEducation->id}");
     $response->assertForbidden();
 });
+
+test('user can create education with custom max_gpa', function () {
+    Sanctum::actingAs($this->user);
+
+    $payload = [
+        'institution' => 'University of Oxford',
+        'type' => EducationType::Formal->value,
+        'degree' => 'B.A',
+        'major' => 'Philosophy, Politics and Economics',
+        'gpa' => 88.5,
+        'max_gpa' => 100.0,
+        'status' => EducationStatus::Graduated->value,
+        'start_period' => '2019-10-01',
+    ];
+
+    $response = $this->postJson('/api/educations', $payload);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.gpa', 88.5)
+        ->assertJsonPath('data.max_gpa', 100);
+
+    $this->assertDatabaseHas('education', [
+        'id' => $response->json('data.id'),
+        'gpa' => 88.5,
+        'max_gpa' => 100.0,
+    ]);
+});
+
+test('validation fails when gpa exceeds max_gpa', function () {
+    Sanctum::actingAs($this->user);
+
+    $payload = [
+        'institution' => 'Invalid University',
+        'type' => EducationType::Formal->value,
+        'degree' => 'B.Sc',
+        'major' => 'Computer Science',
+        'gpa' => 4.5,
+        'max_gpa' => 4.0,
+        'status' => EducationStatus::Graduated->value,
+        'start_period' => '2020-09-01',
+    ];
+
+    $response = $this->postJson('/api/educations', $payload);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['gpa']);
+});
