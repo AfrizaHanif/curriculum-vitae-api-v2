@@ -2,6 +2,7 @@
 
 /** @var TestCase $this */
 
+use App\Enums\EducationDegree;
 use App\Enums\EducationStatus;
 use App\Enums\EducationType;
 use App\Models\Education;
@@ -45,8 +46,11 @@ test('guest cannot create an education', function () {
     $response = $this->postJson('/api/educations', [
         'institution' => 'MIT',
         'type' => EducationType::Formal->value,
-        'degree' => 'B.Sc',
-        'major' => 'Computer Science',
+        'degree' => EducationDegree::Bachelor->value,
+        'major' => [
+            'id' => 'Ilmu Komputer',
+            'en' => 'Computer Science',
+        ],
         'status' => EducationStatus::Graduated->value,
         'start_period' => '2020-09-01',
     ]);
@@ -60,8 +64,12 @@ test('user can create an education with valid data', function () {
     $payload = [
         'institution' => 'Stanford University',
         'type' => EducationType::Formal->value,
-        'degree' => 'B.Sc',
-        'major' => 'Computer Science',
+        'degree' => EducationDegree::Bachelor->value,
+        'academic_title' => 'B.Sc',
+        'major' => [
+            'id' => 'Ilmu Komputer',
+            'en' => 'Computer Science',
+        ],
         'gpa' => 3.95,
         'status' => EducationStatus::Graduated->value,
         'start_period' => '2019-09-01',
@@ -73,13 +81,16 @@ test('user can create an education with valid data', function () {
 
     $response->assertCreated()
         ->assertJsonPath('data.institution', 'Stanford University')
-        ->assertJsonPath('data.degree', 'B.Sc');
+        ->assertJsonPath('data.degree', EducationDegree::Bachelor->value)
+        ->assertJsonPath('data.academic_title', 'B.Sc')
+        ->assertJsonPath('data.major.en', 'Computer Science');
 
     $this->assertDatabaseHas('education', [
         'id' => $response->json('data.id'),
         'profile_id' => $this->profile->id,
         'institution' => 'Stanford University',
-        'degree' => 'B.Sc',
+        'degree' => EducationDegree::Bachelor->value,
+        'academic_title' => 'B.Sc',
     ]);
 });
 
@@ -161,8 +172,11 @@ test('user can create education with custom max_gpa', function () {
     $payload = [
         'institution' => 'University of Oxford',
         'type' => EducationType::Formal->value,
-        'degree' => 'B.A',
-        'major' => 'Philosophy, Politics and Economics',
+        'degree' => EducationDegree::Bachelor->value,
+        'major' => [
+            'id' => 'Filsafat, Politik dan Ekonomi',
+            'en' => 'Philosophy, Politics and Economics',
+        ],
         'gpa' => 88.5,
         'max_gpa' => 100.0,
         'status' => EducationStatus::Graduated->value,
@@ -188,8 +202,11 @@ test('validation fails when gpa exceeds max_gpa', function () {
     $payload = [
         'institution' => 'Invalid University',
         'type' => EducationType::Formal->value,
-        'degree' => 'B.Sc',
-        'major' => 'Computer Science',
+        'degree' => EducationDegree::Bachelor->value,
+        'major' => [
+            'id' => 'Ilmu Komputer',
+            'en' => 'Computer Science',
+        ],
         'gpa' => 4.5,
         'max_gpa' => 4.0,
         'status' => EducationStatus::Graduated->value,

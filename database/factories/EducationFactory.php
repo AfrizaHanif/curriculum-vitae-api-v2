@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\EducationDegree;
 use App\Enums\EducationStatus;
 use App\Enums\EducationType;
 use App\Models\Education;
@@ -25,8 +26,12 @@ class EducationFactory extends Factory
             'institution' => fake()->company().' University',
             'type' => fake()->randomElement(EducationType::cases())->value,
             'address' => fake()->address(),
-            'degree' => fake()->randomElement(['B.Sc', 'M.Sc', 'S.Kom', 'Diploma']),
-            'major' => fake()->words(2, true).' Engineering',
+            'degree' => fake()->randomElement(EducationDegree::cases())->value,
+            'academic_title' => fake()->randomElement(['S.Kom', 'B.Sc', 'M.Kom', null]),
+            'major' => [
+                'id' => fake()->words(2, true).' Engineering',
+                'en' => fake()->words(2, true).' Engineering',
+            ],
             'gpa' => fake()->randomFloat(2, 3.0, 4.0),
             'max_gpa' => 4.0,
             'status' => fake()->randomElement(EducationStatus::cases())->value,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\EducationDegree;
 use App\Enums\EducationStatus;
 use App\Enums\EducationType;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -31,8 +32,13 @@ class UpdateEducationRequest extends FormRequest
             'institution' => ['sometimes', 'required', 'string', 'max:255'],
             'type' => ['sometimes', 'required', Rule::enum(EducationType::class)],
             'address' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'degree' => ['sometimes', 'required', 'string', 'max:10'],
-            'major' => ['sometimes', 'required', 'string', 'max:50'],
+            'degree' => ['sometimes', 'required', Rule::enum(EducationDegree::class)],
+            'academic_title' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'major' => ['sometimes', 'required', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
             'gpa' => ['sometimes', 'nullable', 'numeric', 'min:0', Rule::when($this->filled('max_gpa'), ['lte:max_gpa'])],
             'max_gpa' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'status' => ['sometimes', 'required', Rule::enum(EducationStatus::class)],

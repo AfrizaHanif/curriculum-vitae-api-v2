@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\EducationDegree;
 use App\Enums\EducationStatus;
 use App\Enums\EducationType;
 use App\Models\Education;
@@ -24,8 +25,12 @@ class EducationSeeder extends Seeder
                 'type' => EducationType::Formal->value,
                 'institution' => 'Universitas Dinamika',
                 'address' => 'Jl. Raya Kedung Baruk No.98, Kedung Baruk, Kec. Rungkut, Surabaya, Jawa Timur 60298',
-                'degree' => 'S1',
-                'major' => 'Sistem Informasi',
+                'degree' => EducationDegree::Bachelor->value,
+                'academic_title' => 'S.Kom',
+                'major' => [
+                    'id' => 'Sistem Informasi',
+                    'en' => 'Information Systems',
+                ],
                 'gpa' => 3.26,
                 'status' => EducationStatus::Graduated->value,
                 'description' => [

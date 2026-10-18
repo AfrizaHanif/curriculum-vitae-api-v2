@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\EducationStatus;
 use Database\Factories\ProfileFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $id
  * @property int $user_id
  * @property string $fullname
+ * @property-read string $fullname_with_title
  * @property string $phone
  * @property string|null $current_city
  * @property string|null $current_province
@@ -77,6 +80,30 @@ class Profile extends BaseAPI
     public function getLogLabel(): string
     {
         return $this->fullname;
+    }
+
+    /**
+     * Get the full name with academic titles from graduated educations.
+     *
+     * @return Attribute<string, never>
+     */
+    protected function fullnameWithTitle(): Attribute
+    {
+        return Attribute::make(
+            get: function (): string {
+                $titles = $this->educations
+                    ->filter(fn (Education $education): bool => $education->status === EducationStatus::Graduated && ! empty($education->academic_title))
+                    ->pluck('academic_title')
+                    ->unique()
+                    ->values();
+
+                if ($titles->isEmpty()) {
+                    return $this->fullname;
+                }
+
+                return $this->fullname.', '.$titles->implode(', ');
+            }
+        );
     }
 
     /**

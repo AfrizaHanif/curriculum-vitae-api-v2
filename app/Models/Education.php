@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EducationDegree;
 use App\Enums\EducationStatus;
 use App\Enums\EducationType;
 use Database\Factories\EducationFactory;
@@ -18,8 +19,9 @@ use Illuminate\Support\Carbon;
  * @property string $institution
  * @property EducationType $type
  * @property string|null $address
- * @property string $degree
- * @property string $major
+ * @property EducationDegree $degree
+ * @property string|null $academic_title
+ * @property array<string, string>|string $major
  * @property float|null $gpa
  * @property float|null $max_gpa
  * @property EducationStatus $status
@@ -41,6 +43,7 @@ use Illuminate\Support\Carbon;
     'type',
     'address',
     'degree',
+    'academic_title',
     'major',
     'gpa',
     'max_gpa',
@@ -60,6 +63,8 @@ class Education extends BaseAPI
     {
         return [
             'type' => EducationType::class,
+            'degree' => EducationDegree::class,
+            'major' => 'array',
             'status' => EducationStatus::class,
             'gpa' => 'float',
             'max_gpa' => 'float',

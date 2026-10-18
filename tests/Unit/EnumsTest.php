@@ -1,11 +1,30 @@
 <?php
 
+use App\Enums\EducationDegree;
 use App\Enums\EducationStatus;
 use App\Enums\EducationType;
 use App\Enums\ExperienceStatus;
 use App\Enums\ExperienceType;
 use App\Enums\ProjectStatus;
 use App\Enums\SkillType;
+
+test('education degree enum has valid values, labels, and localized labels', function () {
+    expect(EducationDegree::HighSchool->value)->toBe('high_school')
+        ->and(EducationDegree::HighSchool->label())->toBe('High School')
+        ->and(EducationDegree::HighSchool->labels())->toBe(['id' => 'SMA / SMK', 'en' => 'High School'])
+        ->and(EducationDegree::Associate->value)->toBe('associate')
+        ->and(EducationDegree::Associate->label())->toBe('Associate Degree')
+        ->and(EducationDegree::Associate->labels())->toBe(['id' => 'Diploma (D1 - D4)', 'en' => 'Associate Degree'])
+        ->and(EducationDegree::Bachelor->value)->toBe('bachelor')
+        ->and(EducationDegree::Bachelor->label())->toBe("Bachelor's Degree")
+        ->and(EducationDegree::Bachelor->labels())->toBe(['id' => 'Sarjana (S1)', 'en' => "Bachelor's Degree"])
+        ->and(EducationDegree::Master->value)->toBe('master')
+        ->and(EducationDegree::Master->label())->toBe("Master's Degree")
+        ->and(EducationDegree::Master->labels())->toBe(['id' => 'Magister (S2)', 'en' => "Master's Degree"])
+        ->and(EducationDegree::Doctorate->value)->toBe('doctorate')
+        ->and(EducationDegree::Doctorate->label())->toBe('Doctoral Degree')
+        ->and(EducationDegree::Doctorate->labels())->toBe(['id' => 'Doktor (S3)', 'en' => 'Doctoral Degree (Ph.D)']);
+});
 
 test('education status enum has valid values and labels', function () {
     expect(EducationStatus::Enrolled->value)->toBe('enrolled')

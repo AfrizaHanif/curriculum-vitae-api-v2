@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\EducationDegree;
 use App\Enums\EducationStatus;
 use App\Enums\EducationType;
 use App\Models\Education;
@@ -30,8 +31,13 @@ class StoreEducationRequest extends FormRequest
             'institution' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::enum(EducationType::class)],
             'address' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'degree' => ['required', 'string', 'max:10'],
-            'major' => ['required', 'string', 'max:50'],
+            'degree' => ['required', Rule::enum(EducationDegree::class)],
+            'academic_title' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'major' => ['required', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
             'gpa' => ['sometimes', 'nullable', 'numeric', 'min:0', Rule::when($this->filled('max_gpa'), ['lte:max_gpa'])],
             'max_gpa' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'status' => ['required', Rule::enum(EducationStatus::class)],

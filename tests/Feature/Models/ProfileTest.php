@@ -2,6 +2,9 @@
 
 /** @var TestCase $this */
 
+use App\Enums\EducationDegree;
+use App\Enums\EducationStatus;
+use App\Models\Education;
 use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,6 +18,36 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->user = User::factory()->create();
     $this->profile = Profile::factory()->for($this->user)->create();
+});
+
+test('profile fullname_with_title accessor includes graduated academic titles', function () {
+    expect($this->profile->fullname_with_title)->toBe($this->profile->fullname);
+
+    Education::factory()->for($this->profile)->create([
+        'degree' => EducationDegree::Bachelor->value,
+        'academic_title' => 'S.Kom',
+        'status' => EducationStatus::Graduated->value,
+    ]);
+
+    $this->profile->unsetRelation('educations');
+
+    expect($this->profile->fullname_with_title)->toBe($this->profile->fullname.', S.Kom');
+
+    Education::factory()->for($this->profile)->create([
+        'degree' => EducationDegree::Master->value,
+        'academic_title' => 'M.Kom',
+        'status' => EducationStatus::Graduated->value,
+    ]);
+
+    Education::factory()->for($this->profile)->create([
+        'degree' => EducationDegree::Doctorate->value,
+        'academic_title' => 'Dr.',
+        'status' => EducationStatus::Enrolled->value,
+    ]);
+
+    $this->profile->unsetRelation('educations');
+
+    expect($this->profile->fullname_with_title)->toBe($this->profile->fullname.', S.Kom, M.Kom');
 });
 
 test('guest can list profiles', function () {
