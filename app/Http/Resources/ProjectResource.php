@@ -43,6 +43,7 @@ class ProjectResource extends JsonResource
             'finish_period' => $this->finish_period?->format('Y-m-d') ?? $this->finish_period,
             'status' => $this->status?->value,
             'status_label' => $this->status?->label(),
+            'status_labels' => $this->status?->labels(),
             'description' => $this->description,
             'delay_reason' => $this->delay_reason,
             'resume_date' => $this->resume_date?->format('Y-m-d') ?? $this->resume_date,

@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum EducationDegree: string
 {
+    case NonDegree = 'non_degree';
     case HighSchool = 'high_school';
     case Associate = 'associate';
     case Bachelor = 'bachelor';
@@ -14,6 +15,7 @@ enum EducationDegree: string
     public function label(): string
     {
         return match ($this) {
+            self::NonDegree => 'Non-Degree',
             self::HighSchool => 'High School',
             self::Associate => 'Associate Degree',
             self::AppliedBachelor => "Applied Bachelor's Degree",
@@ -29,6 +31,10 @@ enum EducationDegree: string
     public function labels(): array
     {
         return match ($this) {
+            self::NonDegree => [
+                'id' => 'Non-Gelar / Kursus',
+                'en' => 'Non-Degree / Certificate',
+            ],
             self::HighSchool => [
                 'id' => 'SMA / SMK',
                 'en' => 'High School',

@@ -23,6 +23,7 @@ class SkillResource extends JsonResource
             'name' => $this->name,
             'type' => $this->type?->value,
             'type_label' => $this->type?->label(),
+            'type_labels' => $this->type?->labels(),
             'display_order' => $this->display_order,
             'deleted_at' => $this->deleted_at,
             'created_at' => $this->created_at,
