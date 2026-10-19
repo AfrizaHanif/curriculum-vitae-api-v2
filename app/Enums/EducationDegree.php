@@ -7,6 +7,7 @@ enum EducationDegree: string
     case HighSchool = 'high_school';
     case Associate = 'associate';
     case Bachelor = 'bachelor';
+    case AppliedBachelor = 'applied_bachelor';
     case Master = 'master';
     case Doctorate = 'doctorate';
 
@@ -15,6 +16,7 @@ enum EducationDegree: string
         return match ($this) {
             self::HighSchool => 'High School',
             self::Associate => 'Associate Degree',
+            self::AppliedBachelor => "Applied Bachelor's Degree",
             self::Bachelor => "Bachelor's Degree",
             self::Master => "Master's Degree",
             self::Doctorate => 'Doctoral Degree',
@@ -32,8 +34,12 @@ enum EducationDegree: string
                 'en' => 'High School',
             ],
             self::Associate => [
-                'id' => 'Diploma (D1 - D4)',
+                'id' => 'Diploma (D1 - D3)',
                 'en' => 'Associate Degree',
+            ],
+            self::AppliedBachelor => [
+                'id' => 'Sarjana Terapan (D4)',
+                'en' => "Applied Bachelor's Degree",
             ],
             self::Bachelor => [
                 'id' => 'Sarjana (S1)',
