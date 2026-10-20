@@ -8,10 +8,20 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string $profile_id
+ * @property string $name
+ * @property string|null $icon
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Profile $profile
+ */
 #[Table('hobbies')]
 #[Fillable([
-    'id',
     'profile_id',
     'name',
     'icon',

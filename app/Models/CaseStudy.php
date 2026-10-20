@@ -8,10 +8,29 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string $portfolio_id
+ * @property string $role
+ * @property array $problems
+ * @property array $goals
+ * @property array|null $responsibilities
+ * @property array|null $diagrams
+ * @property array|null $solutions
+ * @property array|null $benefits
+ * @property array|null $results
+ * @property array|null $process
+ * @property array|null $challenges
+ * @property array|null $lessons
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Portfolio $portfolio
+ */
 #[Table('case_studies')]
 #[Fillable([
-    'id',
     'portfolio_id',
     'role',
     'problems',

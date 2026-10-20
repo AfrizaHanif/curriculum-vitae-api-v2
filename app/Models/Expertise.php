@@ -26,7 +26,6 @@ use Illuminate\Support\Carbon;
  */
 #[Table('expertises')]
 #[Fillable([
-    'id',
     'profile_id',
     'title',
     'description',

@@ -32,7 +32,6 @@ use Illuminate\Support\Carbon;
  */
 #[Table('experiences')]
 #[Fillable([
-    'id',
     'profile_id',
     'title',
     'company',

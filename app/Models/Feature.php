@@ -25,7 +25,6 @@ use Illuminate\Support\Carbon;
  */
 #[Table('features')]
 #[Fillable([
-    'id',
     'featureable_type',
     'featureable_id',
     'title',

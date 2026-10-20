@@ -29,6 +29,7 @@ class CertificateResource extends JsonResource
             'type' => $this->type,
             'issuer' => $this->issuer,
             'issued_date' => $this->issued_date?->format('Y-m-d') ?? $this->issued_date,
+            'expired_date' => $this->expired_date?->format('Y-m-d') ?? $this->expired_date,
             'credential_id' => $this->credential_id,
             'credential_url' => $this->credential_url,
             'file' => $this->file ? $disk->url($this->file) : null,

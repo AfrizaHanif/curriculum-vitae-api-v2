@@ -44,7 +44,6 @@ use Illuminate\Support\Carbon;
  */
 #[Table('projects')]
 #[Fillable([
-    'id',
     'profile_id',
     'portfolio_id',
     'title',

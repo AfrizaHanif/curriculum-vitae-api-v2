@@ -43,6 +43,8 @@ class ProfileResource extends JsonResource
             'resume' => is_array($this->resume)
                 ? array_map(fn ($path) => $path ? $disk->url(ltrim($path, '/')) : null, $this->resume)
                 : ($this->resume ? $disk->url(ltrim($this->resume, '/')) : null),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

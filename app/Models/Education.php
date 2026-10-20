@@ -37,7 +37,6 @@ use Illuminate\Support\Carbon;
  */
 #[Table('education')]
 #[Fillable([
-    'id',
     'profile_id',
     'institution',
     'type',
