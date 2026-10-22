@@ -36,7 +36,7 @@ trait HandlesResourceFiltering
         $requestedPerPage = $request->query('per_page');
         $effectivePerPage = $requestedPerPage !== null
             ? max(1, min((int) $requestedPerPage, 100))
-            : ($perPage ?? 15);
+            : ($perPage !== null ? max(1, min($perPage, 100)) : null);
 
         // Return paginated results if perPage is provided or if pagination is requested via query string
         if ($effectivePerPage !== null || $request->has('page')) {
