@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PostCategory;
 use App\Models\Post;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -33,7 +34,7 @@ class UpdatePostRequest extends FormRequest
         return [
             'title' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('posts', 'title')->ignore($post?->id)],
             'slug' => ['sometimes', 'nullable', 'string', 'max:255', Rule::unique('posts', 'slug')->ignore($post?->id)],
-            'category' => ['sometimes', 'required', 'string', 'max:255'],
+            'category' => ['sometimes', 'required', Rule::enum(PostCategory::class)],
             'author' => ['sometimes', 'required', 'string', 'max:255'],
             'tags' => ['sometimes', 'nullable', 'array'],
             'summary' => ['sometimes', 'required', 'string'],

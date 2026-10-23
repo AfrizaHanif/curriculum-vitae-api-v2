@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\PostCategory;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -23,7 +24,7 @@ class PostSeeder extends Seeder
                 'profile_id' => $user->profile->id,
                 'title' => 'Selamat Datang di Web Portfolio',
                 'slug' => 'selamat-datang-di-web-portfolio',
-                'category' => 'Announcement',
+                'category' => PostCategory::Announcement->value,
                 'author' => 'Afriza Hanif',
                 'tags' => ['Announcement'],
                 'summary' => 'Ini adalah postingan pertama dari saya.',
@@ -36,7 +37,7 @@ class PostSeeder extends Seeder
                 'profile_id' => $user->profile->id,
                 'title' => 'Hasil Proyek Kerja Praktik dan Tugas Akhir',
                 'slug' => 'hasil-proyek-kerja-praktik-dan-tugas-akhir',
-                'category' => 'Announcement',
+                'category' => PostCategory::Announcement->value,
                 'author' => 'Afriza Hanif',
                 'tags' => ['Announcement'],
                 'summary' => 'Proyek-proyek selama saya berkuliah telah dapat anda lihat di halaman Portfolio.',
@@ -48,7 +49,7 @@ class PostSeeder extends Seeder
                 'profile_id' => $user->profile->id,
                 'title' => 'Update Portfolio CV ke React',
                 'slug' => 'update-portfolio-cv-ke-react',
-                'category' => 'Announcement',
+                'category' => PostCategory::Announcement->value,
                 'author' => 'Afriza Hanif',
                 'tags' => ['Announcement'],
                 'summary' => 'Portfolio ini telah menggunakan React, menggantikan Angular.',

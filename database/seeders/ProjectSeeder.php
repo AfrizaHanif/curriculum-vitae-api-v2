@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\ProjectStatus;
+use App\Enums\ProjectType;
 use App\Models\Feature;
 use App\Models\Project;
 use App\Models\User;
@@ -25,7 +26,7 @@ class ProjectSeeder extends Seeder
                 'profile_id' => $user->profile->id,
                 'title' => 'Web Delta Sari (Indah dan Baru)',
                 'slug' => 'web-delta-sari-indah-dan-baru',
-                'type' => 'Personal Project',
+                'type' => ProjectType::Personal->value,
                 'category' => 'Full-Stack Development',
                 'image' => '/images/projects/PRJ-001.jpg',
                 'start_period' => '2025-03-01',
@@ -52,7 +53,7 @@ class ProjectSeeder extends Seeder
                 'profile_id' => $user->profile->id,
                 'title' => 'Curriculum Vitae API',
                 'slug' => 'curriculum-vitae-api',
-                'type' => 'Personal Project',
+                'type' => ProjectType::Personal->value,
                 'category' => 'Backend Development',
                 'image' => '/images/projects/PRJ-002.jpg',
                 'start_period' => '2026-03-10',
@@ -86,7 +87,7 @@ class ProjectSeeder extends Seeder
                 'profile_id' => $user->profile->id,
                 'title' => 'Interactive Curriculum Vitae Web',
                 'slug' => 'interactive-curriculum-vitae-web',
-                'type' => 'Personal Project',
+                'type' => ProjectType::Personal->value,
                 'category' => 'Front-End Development',
                 'image' => '/images/projects/PRJ-003.jpg',
                 'start_period' => '2026-03-22',

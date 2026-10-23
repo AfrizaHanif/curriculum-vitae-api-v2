@@ -2,6 +2,7 @@
 
 /** @var TestCase $this */
 
+use App\Enums\CertificateType;
 use App\Models\Certificate;
 use App\Models\Profile;
 use App\Models\User;
@@ -24,7 +25,7 @@ test('guest can list certificates', function () {
     $response->assertOk()
         ->assertJsonStructure([
             'data' => [
-                '*' => ['id', 'title', 'type', 'issuer'],
+                '*' => ['id', 'title', 'type', 'type_label', 'type_labels', 'issuer'],
             ],
         ]);
 });
@@ -36,7 +37,9 @@ test('guest can view a single certificate', function () {
 
     $response->assertOk()
         ->assertJsonPath('data.id', $certificate->id)
-        ->assertJsonPath('data.title', $certificate->title);
+        ->assertJsonPath('data.title', $certificate->title)
+        ->assertJsonPath('data.type', $certificate->type->value)
+        ->assertJsonPath('data.type_label', $certificate->type->label());
 });
 
 test('guest cannot create a certificate', function () {
@@ -53,7 +56,7 @@ test('user can create a certificate with valid data', function () {
 
     $payload = [
         'title' => 'AWS Certified Solutions Architect',
-        'type' => 'Kursus',
+        'type' => CertificateType::Course->value,
         'issuer' => 'Amazon Web Services',
         'issued_date' => '2024-01-15',
         'credential_url' => 'https://aws.amazon.com/verify/12345',
@@ -62,14 +65,28 @@ test('user can create a certificate with valid data', function () {
     $response = $this->postJson('/api/certificates', $payload);
 
     $response->assertCreated()
-        ->assertJsonPath('data.title', 'AWS Certified Solutions Architect');
+        ->assertJsonPath('data.title', 'AWS Certified Solutions Architect')
+        ->assertJsonPath('data.type', CertificateType::Course->value)
+        ->assertJsonPath('data.type_label', CertificateType::Course->label());
 
     $this->assertDatabaseHas('certificates', [
         'id' => $response->json('data.id'),
         'profile_id' => $this->profile->id,
         'title' => 'AWS Certified Solutions Architect',
-        'type' => 'Kursus',
+        'type' => CertificateType::Course->value,
     ]);
+});
+
+test('validation fails when type is invalid on store', function () {
+    Sanctum::actingAs($this->user);
+
+    $response = $this->postJson('/api/certificates', [
+        'title' => 'Invalid Certificate Type',
+        'type' => 'invalid-type',
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['type']);
 });
 
 test('validation fails when required fields are missing on store', function () {
@@ -83,19 +100,36 @@ test('validation fails when required fields are missing on store', function () {
 
 test('user can update their own certificate', function () {
     Sanctum::actingAs($this->user);
-    $certificate = Certificate::factory()->for($this->profile)->create();
+    $certificate = Certificate::factory()->for($this->profile)->create([
+        'type' => CertificateType::Course->value,
+    ]);
 
     $response = $this->putJson("/api/certificates/{$certificate->id}", [
         'title' => 'AWS Certified DevOps Engineer Professional',
+        'type' => CertificateType::Certification->value,
     ]);
 
     $response->assertOk()
-        ->assertJsonPath('data.title', 'AWS Certified DevOps Engineer Professional');
+        ->assertJsonPath('data.title', 'AWS Certified DevOps Engineer Professional')
+        ->assertJsonPath('data.type', CertificateType::Certification->value);
 
     $this->assertDatabaseHas('certificates', [
         'id' => $certificate->id,
         'title' => 'AWS Certified DevOps Engineer Professional',
+        'type' => CertificateType::Certification->value,
     ]);
+});
+
+test('validation fails when type is invalid on update', function () {
+    Sanctum::actingAs($this->user);
+    $certificate = Certificate::factory()->for($this->profile)->create();
+
+    $response = $this->putJson("/api/certificates/{$certificate->id}", [
+        'type' => 'invalid-type',
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['type']);
 });
 
 test('user cannot update another user certificate', function () {

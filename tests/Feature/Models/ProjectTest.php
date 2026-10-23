@@ -3,6 +3,7 @@
 /** @var TestCase $this */
 
 use App\Enums\ProjectStatus;
+use App\Enums\ProjectType;
 use App\Models\Profile;
 use App\Models\Project;
 use App\Models\User;
@@ -25,7 +26,7 @@ test('guest can list projects', function () {
     $response->assertOk()
         ->assertJsonStructure([
             'data' => [
-                '*' => ['id', 'title', 'slug', 'type', 'category', 'status'],
+                '*' => ['id', 'title', 'slug', 'type', 'type_label', 'type_labels', 'category', 'status'],
             ],
         ]);
 });
@@ -37,13 +38,15 @@ test('guest can view a single project', function () {
 
     $response->assertOk()
         ->assertJsonPath('data.id', $project->id)
-        ->assertJsonPath('data.title', $project->title);
+        ->assertJsonPath('data.title', $project->title)
+        ->assertJsonPath('data.type', $project->type->value)
+        ->assertJsonPath('data.type_label', $project->type->label());
 });
 
 test('guest cannot create a project', function () {
     $response = $this->postJson('/api/projects', [
         'title' => 'Open Source CMS',
-        'type' => 'Personal Project',
+        'type' => ProjectType::Personal->value,
         'category' => 'Fullstack',
         'status' => ProjectStatus::Ongoing->value,
         'start_period' => '2024-01-01',
@@ -59,7 +62,7 @@ test('user can create a project with valid data', function () {
 
     $payload = [
         'title' => 'Open Source CMS',
-        'type' => 'Personal Project',
+        'type' => ProjectType::Personal->value,
         'category' => 'Fullstack',
         'status' => ProjectStatus::Ongoing->value,
         'start_period' => '2024-01-01',
@@ -72,13 +75,32 @@ test('user can create a project with valid data', function () {
     $response = $this->postJson('/api/projects', $payload);
 
     $response->assertCreated()
-        ->assertJsonPath('data.title', 'Open Source CMS');
+        ->assertJsonPath('data.title', 'Open Source CMS')
+        ->assertJsonPath('data.type', ProjectType::Personal->value)
+        ->assertJsonPath('data.type_label', ProjectType::Personal->label());
 
     $this->assertDatabaseHas('projects', [
         'id' => $response->json('data.id'),
         'profile_id' => $this->profile->id,
         'title' => 'Open Source CMS',
+        'type' => ProjectType::Personal->value,
     ]);
+});
+
+test('validation fails when type is invalid on store', function () {
+    Sanctum::actingAs($this->user);
+
+    $response = $this->postJson('/api/projects', [
+        'title' => 'Invalid Project Type',
+        'type' => 'invalid-type',
+        'category' => 'Fullstack',
+        'status' => ProjectStatus::Ongoing->value,
+        'start_period' => '2024-01-01',
+        'description' => 'A modern CMS',
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['type']);
 });
 
 test('validation fails when required fields are missing on store', function () {
@@ -92,18 +114,24 @@ test('validation fails when required fields are missing on store', function () {
 
 test('user can update their own project', function () {
     Sanctum::actingAs($this->user);
-    $project = Project::factory()->for($this->profile)->create();
+    $project = Project::factory()->for($this->profile)->create([
+        'type' => ProjectType::Personal->value,
+    ]);
 
     $response = $this->putJson("/api/projects/{$project->id}", [
         'title' => 'Updated Project Title',
+        'type' => ProjectType::Academic->value,
     ]);
 
     $response->assertOk()
-        ->assertJsonPath('data.title', 'Updated Project Title');
+        ->assertJsonPath('data.title', 'Updated Project Title')
+        ->assertJsonPath('data.type', ProjectType::Academic->value)
+        ->assertJsonPath('data.type_label', ProjectType::Academic->label());
 
     $this->assertDatabaseHas('projects', [
         'id' => $project->id,
         'title' => 'Updated Project Title',
+        'type' => ProjectType::Academic->value,
     ]);
 });
 

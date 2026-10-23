@@ -28,7 +28,9 @@ class ProjectResource extends JsonResource
             'portfolio_id' => $this->portfolio_id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'type' => $this->type,
+            'type' => $this->type?->value,
+            'type_label' => $this->type?->label(),
+            'type_labels' => $this->type?->labels(),
             'category' => $this->category,
             'image' => $this->image ? $disk->url($this->image) : null,
             'gallery' => is_array($this->gallery)

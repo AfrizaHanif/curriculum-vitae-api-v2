@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ProjectStatus;
+use App\Enums\ProjectType;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -19,7 +20,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $portfolio_id
  * @property string $title
  * @property string $slug
- * @property string $type
+ * @property ProjectType $type
  * @property string $category
  * @property string|null $image
  * @property array|null $gallery
@@ -73,6 +74,7 @@ class Project extends BaseAPI
     protected function casts(): array
     {
         return [
+            'type' => ProjectType::class,
             'description' => 'array',
             'status' => ProjectStatus::class,
             'tags' => 'array',

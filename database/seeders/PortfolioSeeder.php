@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\ProjectType;
 use App\Models\Feature;
 use App\Models\Portfolio;
 use App\Models\User;
@@ -24,7 +25,7 @@ class PortfolioSeeder extends Seeder
                 'profile_id' => $user->profile->id,
                 'title' => 'Rancang Bangun Aplikasi Pelayanan Perpustakaan pada Badan Pusat Statistik Provinsi Jawa Timur',
                 'slug' => 'rancang-bangun-aplikasi-pelayanan-perpustakaan-pada-badan-pusat-statistik-provinsi-jawa-timur',
-                'type' => 'Proyek Akademik',
+                'type' => ProjectType::Academic->value,
                 'category' => 'Full-Stack Development',
                 'image' => '/images/portfolios/POR-001.png',
                 'gallery' => [
@@ -94,7 +95,7 @@ class PortfolioSeeder extends Seeder
                 'profile_id' => $user->profile->id,
                 'title' => 'Rancang Bangun Aplikasi Penentuan Karyawan Terbaik Berbasis Web menggunakan Metode Simple Additive Weighting (SAW) pada BPS Provinsi Jawa Timur',
                 'slug' => 'rancang-bangun-aplikasi-penentuan-karyawan-terbaik-berbasis-web-menggunakan-metode-simple-additive-weighting-saw-pada-bps-provinsi-jawa-timur',
-                'type' => 'Proyek Akademik',
+                'type' => ProjectType::Academic->value,
                 'category' => 'Full-Stack Development',
                 'image' => '/images/portfolios/POR-002.png',
                 'gallery' => [

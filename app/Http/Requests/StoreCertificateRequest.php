@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\CertificateType;
 use App\Models\Certificate;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 
 class StoreCertificateRequest extends FormRequest
@@ -26,7 +28,7 @@ class StoreCertificateRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'string', 'max:20'],
+            'type' => ['required', Rule::enum(CertificateType::class)],
             'issuer' => ['sometimes', 'nullable', 'string', 'max:255'],
             'issued_date' => ['sometimes', 'nullable', 'date'],
             'credential_url' => ['sometimes', 'nullable', 'url'],

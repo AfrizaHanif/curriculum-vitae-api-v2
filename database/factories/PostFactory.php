@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\PostCategory;
 use App\Models\Post;
 use App\Models\Profile;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,7 +26,7 @@ class PostFactory extends Factory
             'profile_id' => Profile::factory(),
             'title' => $title,
             'slug' => Str::slug($title),
-            'category' => fake()->randomElement(['Tech', 'Tutorial', 'Career']),
+            'category' => fake()->randomElement(PostCategory::cases())->value,
             'author' => fake()->name(),
             'tags' => [fake()->word(), fake()->word()],
             'summary' => fake()->sentence(),

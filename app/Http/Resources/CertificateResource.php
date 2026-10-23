@@ -26,7 +26,9 @@ class CertificateResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'type' => $this->type,
+            'type' => $this->type?->value,
+            'type_label' => $this->type?->label(),
+            'type_labels' => $this->type?->labels(),
             'issuer' => $this->issuer,
             'issued_date' => $this->issued_date?->format('Y-m-d') ?? $this->issued_date,
             'expired_date' => $this->expired_date?->format('Y-m-d') ?? $this->expired_date,

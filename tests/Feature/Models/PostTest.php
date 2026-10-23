@@ -2,6 +2,7 @@
 
 /** @var TestCase $this */
 
+use App\Enums\PostCategory;
 use App\Models\Post;
 use App\Models\Profile;
 use App\Models\User;
@@ -24,7 +25,7 @@ test('guest can list posts', function () {
     $response->assertOk()
         ->assertJsonStructure([
             'data' => [
-                '*' => ['id', 'title', 'slug', 'category', 'author'],
+                '*' => ['id', 'title', 'slug', 'category', 'category_label', 'category_labels', 'author'],
             ],
         ]);
 });
@@ -36,13 +37,15 @@ test('guest can view a single post', function () {
 
     $response->assertOk()
         ->assertJsonPath('data.id', $post->id)
-        ->assertJsonPath('data.title', $post->title);
+        ->assertJsonPath('data.title', $post->title)
+        ->assertJsonPath('data.category', $post->category->value)
+        ->assertJsonPath('data.category_label', $post->category->label());
 });
 
 test('guest cannot create a post', function () {
     $response = $this->postJson('/api/posts', [
         'title' => 'Getting Started with Pest',
-        'category' => 'Testing',
+        'category' => PostCategory::Tech->value,
         'author' => 'John Doe',
         'summary' => 'Introduction to testing with Pest',
         'content' => 'Full article body goes here...',
@@ -56,7 +59,7 @@ test('user can create a post with valid data', function () {
 
     $payload = [
         'title' => 'Getting Started with Pest',
-        'category' => 'Testing',
+        'category' => PostCategory::Tech->value,
         'author' => 'John Doe',
         'summary' => 'Introduction to testing with Pest in Laravel',
         'content' => 'Full article body goes here and explains how to test...',
@@ -66,13 +69,31 @@ test('user can create a post with valid data', function () {
     $response = $this->postJson('/api/posts', $payload);
 
     $response->assertCreated()
-        ->assertJsonPath('data.title', 'Getting Started with Pest');
+        ->assertJsonPath('data.title', 'Getting Started with Pest')
+        ->assertJsonPath('data.category', PostCategory::Tech->value)
+        ->assertJsonPath('data.category_label', PostCategory::Tech->label());
 
     $this->assertDatabaseHas('posts', [
         'id' => $response->json('data.id'),
         'profile_id' => $this->profile->id,
         'title' => 'Getting Started with Pest',
+        'category' => PostCategory::Tech->value,
     ]);
+});
+
+test('validation fails when category is invalid on store', function () {
+    Sanctum::actingAs($this->user);
+
+    $response = $this->postJson('/api/posts', [
+        'title' => 'Invalid Category Post',
+        'category' => 'invalid-category',
+        'author' => 'John Doe',
+        'summary' => 'Some summary',
+        'content' => 'Some content',
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['category']);
 });
 
 test('validation fails when required fields are missing on store', function () {
@@ -86,18 +107,24 @@ test('validation fails when required fields are missing on store', function () {
 
 test('user can update their own post', function () {
     Sanctum::actingAs($this->user);
-    $post = Post::factory()->for($this->profile)->create();
+    $post = Post::factory()->for($this->profile)->create([
+        'category' => PostCategory::Announcement->value,
+    ]);
 
     $response = $this->putJson("/api/posts/{$post->id}", [
         'title' => 'Updated Post Title',
+        'category' => PostCategory::Tutorial->value,
     ]);
 
     $response->assertOk()
-        ->assertJsonPath('data.title', 'Updated Post Title');
+        ->assertJsonPath('data.title', 'Updated Post Title')
+        ->assertJsonPath('data.category', PostCategory::Tutorial->value)
+        ->assertJsonPath('data.category_label', PostCategory::Tutorial->label());
 
     $this->assertDatabaseHas('posts', [
         'id' => $post->id,
         'title' => 'Updated Post Title',
+        'category' => PostCategory::Tutorial->value,
     ]);
 });
 

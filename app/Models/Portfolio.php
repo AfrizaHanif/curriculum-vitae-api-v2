@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectType;
 use Database\Factories\PortfolioFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -19,7 +20,7 @@ use Illuminate\Support\Carbon;
  * @property string $profile_id
  * @property string $title
  * @property string $slug
- * @property string $type
+ * @property ProjectType $type
  * @property string $category
  * @property string|null $image
  * @property array|null $gallery
@@ -76,6 +77,7 @@ class Portfolio extends BaseAPI
     protected function casts(): array
     {
         return [
+            'type' => ProjectType::class,
             'description' => 'array',
             'repositories' => 'array',
             'gallery' => 'array',

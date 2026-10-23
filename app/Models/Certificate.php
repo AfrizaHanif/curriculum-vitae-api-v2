@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CertificateType;
 use Database\Factories\CertificateFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -14,7 +15,7 @@ use Illuminate\Support\Carbon;
  * @property string $id
  * @property string $profile_id
  * @property string $title
- * @property string $type
+ * @property CertificateType $type
  * @property string|null $issuer
  * @property Carbon|null $issued_date
  * @property Carbon|null $expired_date
@@ -50,6 +51,7 @@ class Certificate extends BaseAPI
     protected function casts(): array
     {
         return [
+            'type' => CertificateType::class,
             'issued_date' => 'date',
             'expired_date' => 'date',
             'is_featured' => 'boolean',

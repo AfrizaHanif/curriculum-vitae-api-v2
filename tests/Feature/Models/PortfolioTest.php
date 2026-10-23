@@ -2,6 +2,7 @@
 
 /** @var TestCase $this */
 
+use App\Enums\ProjectType;
 use App\Models\Portfolio;
 use App\Models\Profile;
 use App\Models\User;
@@ -24,7 +25,7 @@ test('guest can list portfolios', function () {
     $response->assertOk()
         ->assertJsonStructure([
             'data' => [
-                '*' => ['id', 'title', 'slug', 'type', 'category'],
+                '*' => ['id', 'title', 'slug', 'type', 'type_label', 'type_labels', 'category'],
             ],
         ]);
 });
@@ -36,13 +37,15 @@ test('guest can view a single portfolio', function () {
 
     $response->assertOk()
         ->assertJsonPath('data.id', $portfolio->id)
-        ->assertJsonPath('data.title', $portfolio->title);
+        ->assertJsonPath('data.title', $portfolio->title)
+        ->assertJsonPath('data.type', $portfolio->type->value)
+        ->assertJsonPath('data.type_label', $portfolio->type->label());
 });
 
 test('guest cannot create a portfolio', function () {
     $response = $this->postJson('/api/portfolios', [
         'title' => 'E-Commerce Platform',
-        'type' => 'Academic Project',
+        'type' => ProjectType::Academic->value,
         'category' => 'Backend',
         'start_period' => '2024-01-01',
         'finish_period' => '2024-06-01',
@@ -57,7 +60,7 @@ test('user can create a portfolio with valid data', function () {
 
     $payload = [
         'title' => 'E-Commerce Platform',
-        'type' => 'Academic Project',
+        'type' => ProjectType::Academic->value,
         'category' => 'Backend',
         'start_period' => '2024-01-01',
         'finish_period' => '2024-06-01',
@@ -69,13 +72,32 @@ test('user can create a portfolio with valid data', function () {
     $response = $this->postJson('/api/portfolios', $payload);
 
     $response->assertCreated()
-        ->assertJsonPath('data.title', 'E-Commerce Platform');
+        ->assertJsonPath('data.title', 'E-Commerce Platform')
+        ->assertJsonPath('data.type', ProjectType::Academic->value)
+        ->assertJsonPath('data.type_label', ProjectType::Academic->label());
 
     $this->assertDatabaseHas('portfolios', [
         'id' => $response->json('data.id'),
         'profile_id' => $this->profile->id,
         'title' => 'E-Commerce Platform',
+        'type' => ProjectType::Academic->value,
     ]);
+});
+
+test('validation fails when type is invalid on store', function () {
+    Sanctum::actingAs($this->user);
+
+    $response = $this->postJson('/api/portfolios', [
+        'title' => 'Invalid Portfolio Type',
+        'type' => 'invalid-type',
+        'category' => 'Backend',
+        'start_period' => '2024-01-01',
+        'finish_period' => '2024-06-01',
+        'description' => 'Invalid portfolio description',
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['type']);
 });
 
 test('validation fails when required fields are missing on store', function () {
@@ -89,18 +111,24 @@ test('validation fails when required fields are missing on store', function () {
 
 test('user can update their own portfolio', function () {
     Sanctum::actingAs($this->user);
-    $portfolio = Portfolio::factory()->for($this->profile)->create();
+    $portfolio = Portfolio::factory()->for($this->profile)->create([
+        'type' => ProjectType::Academic->value,
+    ]);
 
     $response = $this->putJson("/api/portfolios/{$portfolio->id}", [
         'title' => 'Updated Portfolio Title',
+        'type' => ProjectType::Personal->value,
     ]);
 
     $response->assertOk()
-        ->assertJsonPath('data.title', 'Updated Portfolio Title');
+        ->assertJsonPath('data.title', 'Updated Portfolio Title')
+        ->assertJsonPath('data.type', ProjectType::Personal->value)
+        ->assertJsonPath('data.type_label', ProjectType::Personal->label());
 
     $this->assertDatabaseHas('portfolios', [
         'id' => $portfolio->id,
         'title' => 'Updated Portfolio Title',
+        'type' => ProjectType::Personal->value,
     ]);
 });
 

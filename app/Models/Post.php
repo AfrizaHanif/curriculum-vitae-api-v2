@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PostCategory;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -15,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string $profile_id
  * @property string $title
  * @property string $slug
- * @property string $category
+ * @property PostCategory $category
  * @property string $author
  * @property array|null $tags
  * @property string $summary
@@ -48,6 +49,7 @@ class Post extends BaseAPI
     protected function casts(): array
     {
         return [
+            'category' => PostCategory::class,
             'tags' => 'array',
             'is_featured' => 'boolean',
         ];

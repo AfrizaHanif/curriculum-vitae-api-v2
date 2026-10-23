@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ProjectType;
 use App\Models\Expertise;
 use App\Models\Portfolio;
 use App\Models\Profile;
@@ -32,7 +33,7 @@ test('expertise can have many portfolios via pivot table', function () {
         'profile_id' => $profile->id,
         'title' => 'Project Alpha',
         'slug' => 'project-alpha',
-        'type' => 'Commercial',
+        'type' => ProjectType::Commercial->value,
         'category' => 'Backend',
         'start_period' => '2025-01-01',
         'finish_period' => '2025-06-01',
@@ -44,7 +45,7 @@ test('expertise can have many portfolios via pivot table', function () {
         'profile_id' => $profile->id,
         'title' => 'Project Beta',
         'slug' => 'project-beta',
-        'type' => 'Personal',
+        'type' => ProjectType::Personal->value,
         'category' => 'Fullstack',
         'start_period' => '2025-07-01',
         'finish_period' => '2025-12-01',

@@ -2,6 +2,7 @@
 
 /** @var TestCase $this */
 
+use App\Enums\ProjectType;
 use App\Models\Portfolio;
 use App\Models\Profile;
 use App\Models\User;
@@ -25,7 +26,7 @@ test('user can upload portfolio image and it is stored on public disk', function
 
     $response = $this->postJson('/api/portfolios', [
         'title' => 'Innovative SaaS Platform',
-        'type' => 'Commercial',
+        'type' => ProjectType::Commercial->value,
         'category' => 'Web App',
         'start_period' => '2024-01-01',
         'finish_period' => '2024-06-01',
@@ -45,7 +46,7 @@ test('updating portfolio image deletes old file from storage disk', function () 
 
     $response = $this->postJson('/api/portfolios', [
         'title' => 'Analytics Dashboard',
-        'type' => 'Internal',
+        'type' => ProjectType::Commercial->value,
         'category' => 'Data',
         'start_period' => '2024-01-01',
         'finish_period' => '2024-06-01',
@@ -79,7 +80,7 @@ test('user can upload multiple gallery images', function () {
 
     $response = $this->postJson('/api/portfolios', [
         'title' => 'Mobile Banking App',
-        'type' => 'Mobile',
+        'type' => ProjectType::Commercial->value,
         'category' => 'Fintech',
         'start_period' => '2024-02-01',
         'finish_period' => '2024-08-01',

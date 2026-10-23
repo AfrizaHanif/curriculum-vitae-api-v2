@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ProjectType;
 use App\Models\Portfolio;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 
 class StorePortfolioRequest extends FormRequest
@@ -30,7 +32,7 @@ class StorePortfolioRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255', 'unique:portfolios,title'],
             'slug' => ['sometimes', 'nullable', 'string', 'max:255', 'unique:portfolios,slug'],
-            'type' => ['required', 'string', 'max:255'],
+            'type' => ['required', Rule::enum(ProjectType::class)],
             'category' => ['required', 'string', 'max:255'],
             'image' => ['sometimes', 'nullable', File::image()->max('5mb')],
             'gallery' => ['sometimes', 'nullable', 'array'],

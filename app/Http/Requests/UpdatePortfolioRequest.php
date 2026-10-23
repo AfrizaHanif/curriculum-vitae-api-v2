@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ProjectType;
 use App\Models\Portfolio;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -35,7 +36,7 @@ class UpdatePortfolioRequest extends FormRequest
         return [
             'title' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('portfolios', 'title')->ignore($portfolio?->id)],
             'slug' => ['sometimes', 'nullable', 'string', 'max:255', Rule::unique('portfolios', 'slug')->ignore($portfolio?->id)],
-            'type' => ['sometimes', 'required', 'string', 'max:255'],
+            'type' => ['sometimes', 'required', Rule::enum(ProjectType::class)],
             'category' => ['sometimes', 'required', 'string', 'max:255'],
             'image' => ['sometimes', 'nullable', File::image()->max('5mb')],
             'gallery' => ['sometimes', 'nullable', 'array'],

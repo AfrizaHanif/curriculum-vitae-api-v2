@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PostCategory;
 use App\Models\Post;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 
 class StorePostRequest extends FormRequest
@@ -27,7 +29,7 @@ class StorePostRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255', 'unique:posts,title'],
             'slug' => ['sometimes', 'nullable', 'string', 'max:255', 'unique:posts,slug'],
-            'category' => ['required', 'string', 'max:255'],
+            'category' => ['required', Rule::enum(PostCategory::class)],
             'author' => ['required', 'string', 'max:255'],
             'tags' => ['sometimes', 'nullable', 'array'],
             'summary' => ['required', 'string'],

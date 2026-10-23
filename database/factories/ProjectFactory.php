@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\ProjectStatus;
+use App\Enums\ProjectType;
 use App\Models\Profile;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -27,7 +28,7 @@ class ProjectFactory extends Factory
             'portfolio_id' => null,
             'title' => substr($title, 0, 100),
             'slug' => Str::slug($title),
-            'type' => fake()->randomElement(['Academic Project', 'Personal Project', 'Commercial Project']),
+            'type' => fake()->randomElement(ProjectType::cases())->value,
             'category' => fake()->randomElement(['Full-Stack Development', 'Frontend Development', 'Backend Development']),
             'image' => null,
             'gallery' => [],

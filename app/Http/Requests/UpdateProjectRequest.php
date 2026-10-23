@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\ProjectStatus;
+use App\Enums\ProjectType;
 use App\Models\Project;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,7 +38,7 @@ class UpdateProjectRequest extends FormRequest
             'portfolio_id' => ['sometimes', 'nullable', 'exists:portfolios,id'],
             'title' => ['sometimes', 'required', 'string', 'max:100', Rule::unique('projects', 'title')->ignore($project?->id)],
             'slug' => ['sometimes', 'nullable', 'string', 'max:255', Rule::unique('projects', 'slug')->ignore($project?->id)],
-            'type' => ['sometimes', 'required', 'string', 'max:255'],
+            'type' => ['sometimes', 'required', Rule::enum(ProjectType::class)],
             'category' => ['sometimes', 'required', 'string', 'max:255'],
             'image' => ['sometimes', 'nullable', File::image()->max('5mb')],
             'gallery' => ['sometimes', 'nullable', 'array'],

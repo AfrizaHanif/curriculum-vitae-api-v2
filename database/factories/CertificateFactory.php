@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\CertificateType;
 use App\Models\Certificate;
 use App\Models\Profile;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,7 +22,7 @@ class CertificateFactory extends Factory
         return [
             'profile_id' => Profile::factory(),
             'title' => fake()->sentence(3),
-            'type' => fake()->randomElement(['Kursus', 'Sertifikasi']),
+            'type' => fake()->randomElement(CertificateType::cases())->value,
             'issuer' => fake()->company(),
             'issued_date' => fake()->date(),
             'credential_url' => fake()->url(),
