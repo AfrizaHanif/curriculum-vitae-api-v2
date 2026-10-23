@@ -32,6 +32,7 @@ class EducationSeeder extends Seeder
                     'en' => 'Information Systems',
                 ],
                 'gpa' => 3.26,
+                'max_gpa' => 4,
                 'status' => EducationStatus::Graduated->value,
                 'description' => [
                     'id' => 'Fokus pada pengembangan perangkat lunak dan analisis sistem, dengan proyek akhir membangun sistem pendukung keputusan untuk evaluasi kinerja karyawan.',
