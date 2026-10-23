@@ -35,14 +35,26 @@ class UpdateProfileRequest extends FormRequest
         return [
             'user_id' => ['sometimes', 'required', 'exists:users,id'],
             'fullname' => ['sometimes', 'required', 'string', 'max:255', Rule::unique(Profile::class)->ignore($profileId)],
-            'phone' => ['sometimes', 'required', 'string', 'max:15'],
+            'phone' => ['sometimes', 'required', 'string', 'max:20'],
             'current_city' => ['sometimes', 'nullable', 'string', 'max:40'],
             'current_province' => ['sometimes', 'nullable', 'string', 'max:50'],
             'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique(Profile::class)->ignore($profileId)],
             'birthday' => ['sometimes', 'required', 'date'],
-            'tagline' => ['sometimes', 'nullable'],
-            'description' => ['sometimes', 'nullable'],
-            'philosophy' => ['sometimes', 'nullable'],
+            'tagline' => ['sometimes', 'nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
+            'description' => ['sometimes', 'nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
+            'philosophy' => ['sometimes', 'nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
             'status' => ['sometimes', 'required', 'string', 'max:30'],
             'casual_photo' => ['sometimes', 'nullable', File::image()->types(['jpg', 'jpeg', 'png'])->max('2mb')],
             'formal_photo' => ['sometimes', 'nullable', File::image()->types(['jpg', 'jpeg', 'png'])->max('2mb')],

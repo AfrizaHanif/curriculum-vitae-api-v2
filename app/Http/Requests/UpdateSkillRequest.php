@@ -29,7 +29,7 @@ class UpdateSkillRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'type' => ['sometimes', 'required', Rule::enum(SkillType::class)],
-            'display_order' => ['sometimes', 'required', 'integer', 'max:100'],
+            'display_order' => ['sometimes', 'required', 'integer', 'min:0', 'max:100'],
         ];
     }
 }

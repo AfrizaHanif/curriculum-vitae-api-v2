@@ -46,7 +46,21 @@ class UpdatePortfolioRequest extends FormRequest
                 : ['sometimes', 'nullable', 'string', 'url', 'max:500'],
             'remaining_gallery' => ['sometimes', 'nullable', 'array'],
             'start_period' => ['sometimes', 'required', 'date'],
-            'finish_period' => ['sometimes', 'required', 'date', 'after_or_equal:start_period'],
+            'finish_period' => [
+                'sometimes',
+                'required',
+                'date',
+                Rule::when(
+                    $this->filled('start_period'),
+                    ['after_or_equal:start_period'],
+                    function (): array {
+                        $portfolio = $this->route('portfolio');
+                        $start = $portfolio instanceof Portfolio ? $portfolio->start_period?->format('Y-m-d') : null;
+
+                        return $start ? ["after_or_equal:{$start}"] : [];
+                    }
+                ),
+            ],
             'description' => ['sometimes', 'required', function (string $attribute, mixed $value, \Closure $fail): void {
                 if (! is_string($value) && ! is_array($value)) {
                     $fail("The {$attribute} field must be a string or an array.");

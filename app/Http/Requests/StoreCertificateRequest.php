@@ -31,8 +31,12 @@ class StoreCertificateRequest extends FormRequest
             'type' => ['required', Rule::enum(CertificateType::class)],
             'issuer' => ['sometimes', 'nullable', 'string', 'max:255'],
             'issued_date' => ['sometimes', 'nullable', 'date'],
+            'expired_date' => ['sometimes', 'nullable', 'date', Rule::when($this->filled('issued_date'), ['after_or_equal:issued_date'])],
+            'credential_id' => ['sometimes', 'nullable', 'string', 'max:255'],
             'credential_url' => ['sometimes', 'nullable', 'url'],
             'file' => ['sometimes', 'nullable', File::types(['jpg', 'jpeg', 'png', 'pdf'])->max('5mb')],
+            'description' => ['sometimes', 'nullable', 'string'],
+            'is_featured' => ['sometimes', 'boolean'],
         ];
     }
 }

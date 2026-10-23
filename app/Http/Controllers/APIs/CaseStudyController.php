@@ -83,7 +83,16 @@ class CaseStudyController extends Controller implements HasMiddleware
      */
     public function update(UpdateCaseStudyRequest $request, CaseStudy $caseStudy): CaseStudyResource
     {
-        $caseStudy->update($request->validated());
+        $caseStudyData = $request->validated();
+
+        if (isset($caseStudyData['portfolio_id']) && $caseStudyData['portfolio_id'] !== $caseStudy->portfolio_id) {
+            $userProfile = $request->user()?->profile;
+            if (! $userProfile || ! $userProfile->portfolios()->where('id', $caseStudyData['portfolio_id'])->exists()) {
+                abort(404, 'Portfolio not found.');
+            }
+        }
+
+        $caseStudy->update($caseStudyData);
 
         return new CaseStudyResource($caseStudy);
     }

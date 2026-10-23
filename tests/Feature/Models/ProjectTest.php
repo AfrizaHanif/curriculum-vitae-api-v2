@@ -4,6 +4,7 @@
 
 use App\Enums\ProjectStatus;
 use App\Enums\ProjectType;
+use App\Models\Portfolio;
 use App\Models\Profile;
 use App\Models\Project;
 use App\Models\User;
@@ -147,6 +148,31 @@ test('user cannot update another user project', function () {
     ]);
 
     $response->assertForbidden();
+});
+
+test('user cannot assign project to another user portfolio on create or update', function () {
+    $otherUser = User::factory()->create();
+    $otherProfile = Profile::factory()->for($otherUser)->create();
+    $otherPortfolio = Portfolio::factory()->for($otherProfile)->create();
+
+    Sanctum::actingAs($this->user);
+
+    $createResponse = $this->postJson('/api/projects', [
+        'portfolio_id' => $otherPortfolio->id,
+        'title' => 'Stolen Portfolio Project',
+        'type' => ProjectType::Personal->value,
+        'category' => 'Fullstack',
+        'status' => ProjectStatus::Ongoing->value,
+        'start_period' => '2024-01-01',
+        'description' => 'A project test',
+    ]);
+    $createResponse->assertNotFound();
+
+    $project = Project::factory()->for($this->profile)->create();
+    $updateResponse = $this->putJson("/api/projects/{$project->id}", [
+        'portfolio_id' => $otherPortfolio->id,
+    ]);
+    $updateResponse->assertNotFound();
 });
 
 test('user can soft delete, restore, and force delete their own project', function () {

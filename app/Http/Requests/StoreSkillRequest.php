@@ -30,7 +30,7 @@ class StoreSkillRequest extends FormRequest
             'profile_id' => ['required', 'string', Rule::exists(Profile::class, 'id')],
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::enum(SkillType::class)],
-            'display_order' => ['required', 'integer', 'max:100'],
+            'display_order' => ['required', 'integer', 'min:0', 'max:100'],
         ];
     }
 }

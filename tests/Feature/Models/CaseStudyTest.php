@@ -135,6 +135,21 @@ test('user cannot update another user case study', function () {
     $response->assertForbidden();
 });
 
+test('user cannot reassign case study to another user portfolio', function () {
+    $otherUser = User::factory()->create();
+    $otherProfile = Profile::factory()->for($otherUser)->create();
+    $otherPortfolio = Portfolio::factory()->for($otherProfile)->create();
+    $caseStudy = CaseStudy::factory()->for($this->portfolio)->create();
+
+    Sanctum::actingAs($this->user);
+
+    $response = $this->putJson("/api/case-studies/{$caseStudy->id}", [
+        'portfolio_id' => $otherPortfolio->id,
+    ]);
+
+    $response->assertNotFound();
+});
+
 test('user can soft delete, restore, and force delete their own case study', function () {
     Sanctum::actingAs($this->user);
     $caseStudy = CaseStudy::factory()->for($this->portfolio)->create();

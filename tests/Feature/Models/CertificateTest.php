@@ -59,7 +59,11 @@ test('user can create a certificate with valid data', function () {
         'type' => CertificateType::Course->value,
         'issuer' => 'Amazon Web Services',
         'issued_date' => '2024-01-15',
+        'expired_date' => '2027-01-15',
+        'credential_id' => 'AWS-12345',
         'credential_url' => 'https://aws.amazon.com/verify/12345',
+        'description' => 'Comprehensive cloud architecture certification.',
+        'is_featured' => true,
     ];
 
     $response = $this->postJson('/api/certificates', $payload);
@@ -67,13 +71,19 @@ test('user can create a certificate with valid data', function () {
     $response->assertCreated()
         ->assertJsonPath('data.title', 'AWS Certified Solutions Architect')
         ->assertJsonPath('data.type', CertificateType::Course->value)
-        ->assertJsonPath('data.type_label', CertificateType::Course->label());
+        ->assertJsonPath('data.type_label', CertificateType::Course->label())
+        ->assertJsonPath('data.credential_id', 'AWS-12345')
+        ->assertJsonPath('data.expired_date', '2027-01-15')
+        ->assertJsonPath('data.description', 'Comprehensive cloud architecture certification.')
+        ->assertJsonPath('data.is_featured', true);
 
     $this->assertDatabaseHas('certificates', [
         'id' => $response->json('data.id'),
         'profile_id' => $this->profile->id,
         'title' => 'AWS Certified Solutions Architect',
         'type' => CertificateType::Course->value,
+        'credential_id' => 'AWS-12345',
+        'is_featured' => true,
     ]);
 });
 
@@ -107,16 +117,24 @@ test('user can update their own certificate', function () {
     $response = $this->putJson("/api/certificates/{$certificate->id}", [
         'title' => 'AWS Certified DevOps Engineer Professional',
         'type' => CertificateType::Certification->value,
+        'credential_id' => 'AWS-DEV-999',
+        'description' => 'Updated description.',
+        'is_featured' => true,
     ]);
 
     $response->assertOk()
         ->assertJsonPath('data.title', 'AWS Certified DevOps Engineer Professional')
-        ->assertJsonPath('data.type', CertificateType::Certification->value);
+        ->assertJsonPath('data.type', CertificateType::Certification->value)
+        ->assertJsonPath('data.credential_id', 'AWS-DEV-999')
+        ->assertJsonPath('data.description', 'Updated description.')
+        ->assertJsonPath('data.is_featured', true);
 
     $this->assertDatabaseHas('certificates', [
         'id' => $certificate->id,
         'title' => 'AWS Certified DevOps Engineer Professional',
         'type' => CertificateType::Certification->value,
+        'credential_id' => 'AWS-DEV-999',
+        'is_featured' => true,
     ]);
 });
 

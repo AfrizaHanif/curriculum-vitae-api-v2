@@ -48,7 +48,21 @@ class UpdateProjectRequest extends FormRequest
                 ? ['sometimes', 'nullable', File::types(['mp4', 'mov', 'avi', 'webm', 'mkv'])->max('100mb')]
                 : ['sometimes', 'nullable', 'string', 'url', 'max:500'],
             'start_period' => ['sometimes', 'required', 'date'],
-            'finish_period' => ['sometimes', 'nullable', 'date', 'after_or_equal:start_period'],
+            'finish_period' => [
+                'sometimes',
+                'nullable',
+                'date',
+                Rule::when(
+                    $this->filled('start_period'),
+                    ['after_or_equal:start_period'],
+                    function (): array {
+                        $project = $this->route('project');
+                        $start = $project instanceof Project ? $project->start_period?->format('Y-m-d') : null;
+
+                        return $start ? ["after_or_equal:{$start}"] : [];
+                    }
+                ),
+            ],
             'status' => ['sometimes', 'required', Rule::enum(ProjectStatus::class)],
             'description' => ['sometimes', 'required', function (string $attribute, mixed $value, \Closure $fail): void {
                 if (! is_string($value) && ! is_array($value)) {

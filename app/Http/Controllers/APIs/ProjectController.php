@@ -64,6 +64,13 @@ class ProjectController extends Controller implements HasMiddleware
 
         $projectData = $request->validated();
 
+        if (! empty($projectData['portfolio_id'])) {
+            $portfolio = $userProfile->portfolios()->find($projectData['portfolio_id']);
+            if (! $portfolio) {
+                return response()->json(['message' => 'Portfolio not found.'], 404);
+            }
+        }
+
         $customId = (new Project)->generateCustomId();
         $idNum = preg_replace('/\D/', '', $customId);
         $baseCustomName = "IMG-{$idNum}_".time();
@@ -102,6 +109,14 @@ class ProjectController extends Controller implements HasMiddleware
     public function update(UpdateProjectRequest $request, Project $project): ProjectResource
     {
         $data = $request->validated();
+
+        if (! empty($data['portfolio_id']) && $data['portfolio_id'] !== $project->portfolio_id) {
+            $userProfile = $request->user()?->profile;
+            if (! $userProfile || ! $userProfile->portfolios()->where('id', $data['portfolio_id'])->exists()) {
+                abort(404, 'Portfolio not found.');
+            }
+        }
+
         $idNum = preg_replace('/\D/', '', (string) $project->id);
         $baseCustomName = "IMG-{$idNum}_".time();
         $baseVideoName = "VID-{$idNum}_".time();

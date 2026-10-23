@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\EducationDegree;
 use App\Enums\EducationStatus;
 use App\Enums\EducationType;
+use App\Models\Education;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -43,7 +44,21 @@ class UpdateEducationRequest extends FormRequest
             'max_gpa' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'status' => ['sometimes', 'required', Rule::enum(EducationStatus::class)],
             'start_period' => ['sometimes', 'required', 'date'],
-            'finish_period' => ['sometimes', 'nullable', 'date', 'after_or_equal:start_period'],
+            'finish_period' => [
+                'sometimes',
+                'nullable',
+                'date',
+                Rule::when(
+                    $this->filled('start_period'),
+                    ['after_or_equal:start_period'],
+                    function (): array {
+                        $education = $this->route('education');
+                        $start = $education instanceof Education ? $education->start_period?->format('Y-m-d') : null;
+
+                        return $start ? ["after_or_equal:{$start}"] : [];
+                    }
+                ),
+            ],
             'description' => ['sometimes', 'nullable', function (string $attribute, mixed $value, \Closure $fail): void {
                 if (! is_string($value) && ! is_array($value)) {
                     $fail("The {$attribute} field must be a string or an array.");
