@@ -36,7 +36,7 @@ test('user can upload portfolio image and it is stored on public disk', function
 
     $response->assertCreated();
 
-    $portfolio = Portfolio::where('title', 'Innovative SaaS Platform')->firstOrFail();
+    $portfolio = Portfolio::findOrFail($response->json('data.id'));
     expect($portfolio->image)->not->toBeNull();
     Storage::disk('public')->assertExists($portfolio->image);
 });
@@ -124,6 +124,68 @@ test('updating gallery removes deleted files and keeps remaining ones', function
     Storage::disk('public')->assertExists($path1);
     Storage::disk('public')->assertMissing($path2);
     expect($portfolio->gallery)->toHaveCount(2);
+});
+
+test('user can create portfolio with gallery containing string paths or URLs', function () {
+    $response = $this->postJson('/api/portfolios', [
+        'title' => 'String Gallery Portfolio',
+        'type' => ProjectType::Commercial->value,
+        'category' => 'Web',
+        'start_period' => '2024-01-01',
+        'finish_period' => '2024-06-01',
+        'description' => 'A portfolio with string gallery items',
+        'gallery' => [
+            'https://example.com/slide1.jpg',
+            'images/portfolios/gallery/slide2.jpg',
+        ],
+    ]);
+
+    $response->assertCreated();
+    $portfolio = Portfolio::findOrFail($response->json('data.id'));
+    expect($portfolio->gallery)->toBe([
+        'https://example.com/slide1.jpg',
+        'images/portfolios/gallery/slide2.jpg',
+    ]);
+});
+
+test('user can update portfolio gallery by passing existing strings in gallery field', function () {
+    $path1 = 'images/portfolios/gallery/existing1.jpg';
+    $path2 = 'images/portfolios/gallery/existing2.jpg';
+    Storage::disk('public')->put($path1, 'img1');
+    Storage::disk('public')->put($path2, 'img2');
+
+    $portfolio = Portfolio::factory()->for($this->profile)->create([
+        'gallery' => [$path1, $path2],
+    ]);
+
+    // Keep path1, remove path2 by only including path1 in gallery
+    $response = $this->putJson("/api/portfolios/{$portfolio->id}", [
+        'gallery' => [$path1],
+    ]);
+
+    $response->assertOk();
+    $portfolio->refresh();
+
+    Storage::disk('public')->assertExists($path1);
+    Storage::disk('public')->assertMissing($path2);
+    expect($portfolio->gallery)->toBe([$path1]);
+});
+
+test('validation fails when gallery item is invalid type', function () {
+    $response = $this->postJson('/api/portfolios', [
+        'title' => 'Invalid Gallery Portfolio',
+        'type' => ProjectType::Commercial->value,
+        'category' => 'Web',
+        'start_period' => '2024-01-01',
+        'finish_period' => '2024-06-01',
+        'description' => 'A portfolio with invalid gallery items',
+        'gallery' => [
+            ['nested' => 'array'],
+        ],
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['gallery.0']);
 });
 
 test('force deleting portfolio cleans up files from storage disk via file observer', function () {

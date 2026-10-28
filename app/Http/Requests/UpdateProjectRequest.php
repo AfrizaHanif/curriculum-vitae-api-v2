@@ -5,14 +5,18 @@ namespace App\Http\Requests;
 use App\Enums\ProjectStatus;
 use App\Enums\ProjectType;
 use App\Models\Project;
+use App\Traits\NormalizesMultilingualFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 
 class UpdateProjectRequest extends FormRequest
 {
+    use NormalizesMultilingualFields;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -24,6 +28,19 @@ class UpdateProjectRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $project = $this->route('project');
+        $this->normalizeMultilingualUpdate(
+            ['title', 'description'],
+            $project instanceof Project ? $project : null
+        );
+        $this->normalizeJsonArrayFields(['tags', 'technology', 'gallery', 'remaining_gallery']);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -32,17 +49,37 @@ class UpdateProjectRequest extends FormRequest
     {
         /** @var Project|null $project */
         $project = $this->route('project');
+        $isImageFile = $this->file('image') instanceof UploadedFile;
         $isVideoFile = $this->file('video') instanceof UploadedFile;
 
         return [
             'portfolio_id' => ['sometimes', 'nullable', 'exists:portfolios,id'],
-            'title' => ['sometimes', 'required', 'string', 'max:100', Rule::unique('projects', 'title')->ignore($project?->id)],
+            'title' => ['sometimes', 'required', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! is_string($value) && ! is_array($value)) {
+                    $fail("The {$attribute} field must be a string or an array.");
+                }
+            }],
             'slug' => ['sometimes', 'nullable', 'string', 'max:255', Rule::unique('projects', 'slug')->ignore($project?->id)],
             'type' => ['sometimes', 'required', Rule::enum(ProjectType::class)],
             'category' => ['sometimes', 'required', 'string', 'max:255'],
-            'image' => ['sometimes', 'nullable', File::image()->max('5mb')],
+            'image' => $isImageFile
+                ? ['sometimes', 'nullable', File::image()->max('5mb')]
+                : ['sometimes', 'nullable', 'string', 'max:500'],
             'gallery' => ['sometimes', 'nullable', 'array'],
-            'gallery.*' => [File::image()->max('5mb')],
+            'gallery.*' => ['nullable', function (string $attribute, mixed $value, \Closure $fail): void {
+                if ($value instanceof UploadedFile) {
+                    $validator = Validator::make(['file' => $value], ['file' => [File::image()->max('5mb')]]);
+                    if ($validator->fails()) {
+                        $fail((string) str_replace('file', $attribute, $validator->errors()->first('file')));
+                    }
+                } elseif (is_string($value)) {
+                    if (strlen($value) > 500) {
+                        $fail("The {$attribute} field must not be greater than 500 characters.");
+                    }
+                } else {
+                    $fail("The {$attribute} field must be an image file or a string.");
+                }
+            }],
             'remaining_gallery' => ['sometimes', 'nullable', 'array'],
             'video' => $isVideoFile
                 ? ['sometimes', 'nullable', File::types(['mp4', 'mov', 'avi', 'webm', 'mkv'])->max('100mb')]

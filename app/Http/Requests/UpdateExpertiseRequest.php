@@ -2,11 +2,15 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Expertise;
+use App\Traits\NormalizesMultilingualFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateExpertiseRequest extends FormRequest
 {
+    use NormalizesMultilingualFields;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -15,6 +19,18 @@ class UpdateExpertiseRequest extends FormRequest
         $expertise = $this->route('expertise');
 
         return (bool) $this->user()?->can('update', $expertise);
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $expertise = $this->route('expertise');
+        $this->normalizeMultilingualUpdate(
+            ['description'],
+            $expertise instanceof Expertise ? $expertise : null
+        );
     }
 
     /**

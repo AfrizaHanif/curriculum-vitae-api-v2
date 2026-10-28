@@ -218,3 +218,100 @@ test('validation fails when gpa exceeds max_gpa', function () {
     $response->assertUnprocessable()
         ->assertJsonValidationErrors(['gpa']);
 });
+
+test('user can create education with plain string major and it normalizes to multilingual', function () {
+    Sanctum::actingAs($this->user);
+
+    $payload = [
+        'institution' => 'Universitas Dinamika',
+        'type' => EducationType::Formal->value,
+        'degree' => EducationDegree::Bachelor->value,
+        'major' => 'Sistem Informasi',
+        'status' => EducationStatus::Graduated->value,
+        'start_period' => '2021-08-01',
+    ];
+
+    $response = $this->postJson('/api/educations', $payload);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.major.id', 'Sistem Informasi')
+        ->assertJsonPath('data.major.en', null);
+});
+
+test('user can create education with json-stringified major from formdata', function () {
+    Sanctum::actingAs($this->user);
+
+    $payload = [
+        'institution' => 'Universitas Dinamika',
+        'type' => EducationType::Formal->value,
+        'degree' => EducationDegree::Bachelor->value,
+        'major' => json_encode([
+            'id' => 'Sistem Informasi',
+            'en' => 'Information Systems',
+        ]),
+        'status' => EducationStatus::Graduated->value,
+        'start_period' => '2021-08-01',
+    ];
+
+    $response = $this->postJson('/api/educations', $payload);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.major.id', 'Sistem Informasi')
+        ->assertJsonPath('data.major.en', 'Information Systems');
+});
+
+test('user can update education major with multilingual array', function () {
+    Sanctum::actingAs($this->user);
+    $education = Education::factory()->for($this->profile)->create();
+
+    $response = $this->putJson("/api/educations/{$education->id}", [
+        'major' => [
+            'id' => 'Teknik Informatika',
+            'en' => 'Informatics Engineering',
+        ],
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.major.id', 'Teknik Informatika')
+        ->assertJsonPath('data.major.en', 'Informatics Engineering');
+});
+
+test('user can update only id in education major and preserve existing en', function () {
+    Sanctum::actingAs($this->user);
+    $education = Education::factory()->for($this->profile)->create([
+        'major' => [
+            'id' => 'Sistem Informasi',
+            'en' => 'Information Systems',
+        ],
+    ]);
+
+    $response = $this->putJson("/api/educations/{$education->id}", [
+        'major' => [
+            'id' => 'Teknik Informatika',
+        ],
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.major.id', 'Teknik Informatika')
+        ->assertJsonPath('data.major.en', 'Information Systems');
+});
+
+test('user can update only en in education major and preserve existing id', function () {
+    Sanctum::actingAs($this->user);
+    $education = Education::factory()->for($this->profile)->create([
+        'major' => [
+            'id' => 'Sistem Informasi',
+            'en' => 'Information Systems',
+        ],
+    ]);
+
+    $response = $this->putJson("/api/educations/{$education->id}", [
+        'major' => [
+            'en' => 'Informatics Engineering',
+        ],
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.major.id', 'Sistem Informasi')
+        ->assertJsonPath('data.major.en', 'Informatics Engineering');
+});

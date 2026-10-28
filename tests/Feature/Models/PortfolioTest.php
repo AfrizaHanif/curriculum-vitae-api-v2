@@ -59,7 +59,10 @@ test('user can create a portfolio with valid data', function () {
     Sanctum::actingAs($this->user);
 
     $payload = [
-        'title' => 'E-Commerce Platform',
+        'title' => [
+            'id' => 'Platform E-Commerce',
+            'en' => 'E-Commerce Platform',
+        ],
         'type' => ProjectType::Academic->value,
         'category' => 'Backend',
         'start_period' => '2024-01-01',
@@ -72,14 +75,14 @@ test('user can create a portfolio with valid data', function () {
     $response = $this->postJson('/api/portfolios', $payload);
 
     $response->assertCreated()
-        ->assertJsonPath('data.title', 'E-Commerce Platform')
+        ->assertJsonPath('data.title.en', 'E-Commerce Platform')
+        ->assertJsonPath('data.title.id', 'Platform E-Commerce')
         ->assertJsonPath('data.type', ProjectType::Academic->value)
         ->assertJsonPath('data.type_label', ProjectType::Academic->label());
 
     $this->assertDatabaseHas('portfolios', [
         'id' => $response->json('data.id'),
         'profile_id' => $this->profile->id,
-        'title' => 'E-Commerce Platform',
         'type' => ProjectType::Academic->value,
     ]);
 });
@@ -116,20 +119,62 @@ test('user can update their own portfolio', function () {
     ]);
 
     $response = $this->putJson("/api/portfolios/{$portfolio->id}", [
-        'title' => 'Updated Portfolio Title',
+        'title' => [
+            'id' => 'Judul Portofolio Baru',
+            'en' => 'Updated Portfolio Title',
+        ],
         'type' => ProjectType::Personal->value,
     ]);
 
     $response->assertOk()
-        ->assertJsonPath('data.title', 'Updated Portfolio Title')
+        ->assertJsonPath('data.title.en', 'Updated Portfolio Title')
+        ->assertJsonPath('data.title.id', 'Judul Portofolio Baru')
         ->assertJsonPath('data.type', ProjectType::Personal->value)
         ->assertJsonPath('data.type_label', ProjectType::Personal->label());
 
     $this->assertDatabaseHas('portfolios', [
         'id' => $portfolio->id,
-        'title' => 'Updated Portfolio Title',
         'type' => ProjectType::Personal->value,
     ]);
+});
+
+test('user can create a portfolio with string title', function () {
+    Sanctum::actingAs($this->user);
+
+    $payload = [
+        'title' => 'String Portfolio Title',
+        'type' => ProjectType::Personal->value,
+        'category' => 'Backend',
+        'start_period' => '2024-01-01',
+        'finish_period' => '2024-06-01',
+        'description' => 'A string portfolio description',
+    ];
+
+    $response = $this->postJson('/api/portfolios', $payload);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.title.id', 'String Portfolio Title')
+        ->assertJsonPath('data.title.en', null);
+});
+
+test('user can update only id in portfolio title and preserve existing en', function () {
+    Sanctum::actingAs($this->user);
+    $portfolio = Portfolio::factory()->for($this->profile)->create([
+        'title' => [
+            'id' => 'Judul Portofolio',
+            'en' => 'Portfolio Title',
+        ],
+    ]);
+
+    $response = $this->putJson("/api/portfolios/{$portfolio->id}", [
+        'title' => [
+            'id' => 'Judul Baru',
+        ],
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.title.id', 'Judul Baru')
+        ->assertJsonPath('data.title.en', 'Portfolio Title');
 });
 
 test('user cannot update another user portfolio', function () {

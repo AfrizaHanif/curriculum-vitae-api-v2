@@ -76,10 +76,17 @@ class ProjectController extends Controller implements HasMiddleware
         $baseCustomName = "IMG-{$idNum}_".time();
         $baseVideoName = "VID-{$idNum}_".time();
 
+        $titleForSlug = is_array($projectData['title'] ?? null)
+            ? ($projectData['title']['en'] ?? $projectData['title']['id'] ?? reset($projectData['title']) ?? '')
+            : ($projectData['title'] ?? '');
+
         $projectData['id'] = $customId;
-        $projectData['slug'] = ! empty($projectData['slug']) ? $projectData['slug'] : Str::slug($projectData['title']);
+        $projectData['slug'] = ! empty($projectData['slug']) ? $projectData['slug'] : Str::slug((string) $titleForSlug);
         $projectData['image'] = $this->uploadFile($request, 'image', Project::STORAGE_PATH, null, 'public', $baseCustomName);
-        $projectData['gallery'] = $this->uploadFiles($request, 'gallery', Project::STORAGE_PATH.'/gallery', [], 'public', $baseCustomName);
+        if (! $request->hasFile('image') && $request->filled('image')) {
+            $projectData['image'] = $request->input('image');
+        }
+        $projectData['gallery'] = $this->uploadFiles($request, 'gallery', Project::STORAGE_PATH.'/gallery', [], 'public', $baseCustomName, 1, true);
 
         if ($request->hasFile('video')) {
             $projectData['video'] = $this->uploadFile($request, 'video', Project::STORAGE_PATH.'/videos', null, 'public', $baseVideoName);

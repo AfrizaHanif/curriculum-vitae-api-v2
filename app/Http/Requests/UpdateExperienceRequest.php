@@ -5,12 +5,15 @@ namespace App\Http\Requests;
 use App\Enums\ExperienceStatus;
 use App\Enums\ExperienceType;
 use App\Models\Experience;
+use App\Traits\NormalizesMultilingualFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateExperienceRequest extends FormRequest
 {
+    use NormalizesMultilingualFields;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -19,6 +22,18 @@ class UpdateExperienceRequest extends FormRequest
         $experience = $this->route('experience');
 
         return (bool) $this->user()?->can('update', $experience);
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $experience = $this->route('experience');
+        $this->normalizeMultilingualUpdate(
+            ['description'],
+            $experience instanceof Experience ? $experience : null
+        );
     }
 
     /**

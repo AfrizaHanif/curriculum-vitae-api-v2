@@ -24,7 +24,10 @@ class PortfolioFactory extends Factory
 
         return [
             'profile_id' => Profile::factory(),
-            'title' => $title,
+            'title' => [
+                'id' => $title,
+                'en' => $title,
+            ],
             'slug' => Str::slug($title),
             'type' => fake()->randomElement(ProjectType::cases())->value,
             'category' => fake()->randomElement(['Full-Stack Development', 'Frontend Development', 'Backend Development']),

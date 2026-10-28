@@ -23,7 +23,10 @@ class PortfolioSeeder extends Seeder
             [
                 'id' => 'POR-001',
                 'profile_id' => $user->profile->id,
-                'title' => 'Rancang Bangun Aplikasi Pelayanan Perpustakaan pada Badan Pusat Statistik Provinsi Jawa Timur',
+                'title' => [
+                    'id' => 'Rancang Bangun Aplikasi Pelayanan Perpustakaan pada Badan Pusat Statistik Provinsi Jawa Timur',
+                    'en' => 'Design and Development of Library Service Application at BPS East Java Province',
+                ],
                 'slug' => 'rancang-bangun-aplikasi-pelayanan-perpustakaan-pada-badan-pusat-statistik-provinsi-jawa-timur',
                 'type' => ProjectType::Academic->value,
                 'category' => 'Full-Stack Development',
@@ -93,7 +96,10 @@ class PortfolioSeeder extends Seeder
             [
                 'id' => 'POR-002',
                 'profile_id' => $user->profile->id,
-                'title' => 'Rancang Bangun Aplikasi Penentuan Karyawan Terbaik Berbasis Web menggunakan Metode Simple Additive Weighting (SAW) pada BPS Provinsi Jawa Timur',
+                'title' => [
+                    'id' => 'Rancang Bangun Aplikasi Penentuan Karyawan Terbaik Berbasis Web menggunakan Metode Simple Additive Weighting (SAW) pada BPS Provinsi Jawa Timur',
+                    'en' => 'Design and Development of Web-Based Employee Performance Evaluation Application Using the Simple Additive Weighting (SAW) Method at BPS East Java Province',
+                ],
                 'slug' => 'rancang-bangun-aplikasi-penentuan-karyawan-terbaik-berbasis-web-menggunakan-metode-simple-additive-weighting-saw-pada-bps-provinsi-jawa-timur',
                 'type' => ProjectType::Academic->value,
                 'category' => 'Full-Stack Development',

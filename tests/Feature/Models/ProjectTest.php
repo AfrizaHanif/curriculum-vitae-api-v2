@@ -62,7 +62,10 @@ test('user can create a project with valid data', function () {
     Sanctum::actingAs($this->user);
 
     $payload = [
-        'title' => 'Open Source CMS',
+        'title' => [
+            'id' => 'CMS Sumber Terbuka',
+            'en' => 'Open Source CMS',
+        ],
         'type' => ProjectType::Personal->value,
         'category' => 'Fullstack',
         'status' => ProjectStatus::Ongoing->value,
@@ -76,14 +79,14 @@ test('user can create a project with valid data', function () {
     $response = $this->postJson('/api/projects', $payload);
 
     $response->assertCreated()
-        ->assertJsonPath('data.title', 'Open Source CMS')
+        ->assertJsonPath('data.title.en', 'Open Source CMS')
+        ->assertJsonPath('data.title.id', 'CMS Sumber Terbuka')
         ->assertJsonPath('data.type', ProjectType::Personal->value)
         ->assertJsonPath('data.type_label', ProjectType::Personal->label());
 
     $this->assertDatabaseHas('projects', [
         'id' => $response->json('data.id'),
         'profile_id' => $this->profile->id,
-        'title' => 'Open Source CMS',
         'type' => ProjectType::Personal->value,
     ]);
 });
@@ -120,20 +123,63 @@ test('user can update their own project', function () {
     ]);
 
     $response = $this->putJson("/api/projects/{$project->id}", [
-        'title' => 'Updated Project Title',
+        'title' => [
+            'id' => 'Judul Proyek Baru',
+            'en' => 'Updated Project Title',
+        ],
         'type' => ProjectType::Academic->value,
     ]);
 
     $response->assertOk()
-        ->assertJsonPath('data.title', 'Updated Project Title')
+        ->assertJsonPath('data.title.en', 'Updated Project Title')
+        ->assertJsonPath('data.title.id', 'Judul Proyek Baru')
         ->assertJsonPath('data.type', ProjectType::Academic->value)
         ->assertJsonPath('data.type_label', ProjectType::Academic->label());
 
     $this->assertDatabaseHas('projects', [
         'id' => $project->id,
-        'title' => 'Updated Project Title',
         'type' => ProjectType::Academic->value,
     ]);
+});
+
+test('user can create a project with string title', function () {
+    Sanctum::actingAs($this->user);
+
+    $payload = [
+        'title' => 'String Project Title',
+        'type' => ProjectType::Personal->value,
+        'category' => 'Fullstack',
+        'status' => ProjectStatus::Ongoing->value,
+        'start_period' => '2024-01-01',
+        'finish_period' => '2024-06-01',
+        'description' => 'A string project description',
+    ];
+
+    $response = $this->postJson('/api/projects', $payload);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.title.id', 'String Project Title')
+        ->assertJsonPath('data.title.en', null);
+});
+
+test('user can update only id in project title and preserve existing en', function () {
+    Sanctum::actingAs($this->user);
+    $project = Project::factory()->for($this->profile)->create([
+        'title' => [
+            'id' => 'Judul Proyek',
+            'en' => 'Project Title',
+        ],
+    ]);
+
+    $response = $this->putJson("/api/projects/{$project->id}", [
+        'title' => [
+            'id' => 'Judul Baru',
+        ],
+    ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.title.id', 'Judul Baru')
+        ->assertJsonPath('data.title.en', 'Project Title');
 });
 
 test('user cannot update another user project', function () {

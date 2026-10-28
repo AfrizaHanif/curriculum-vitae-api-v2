@@ -24,7 +24,10 @@ class ProjectSeeder extends Seeder
             [
                 'id' => 'PRJ-001',
                 'profile_id' => $user->profile->id,
-                'title' => 'Web Delta Sari (Indah dan Baru)',
+                'title' => [
+                    'id' => 'Web Delta Sari (Indah dan Baru)',
+                    'en' => 'Delta Sari Web (Indah and Baru)',
+                ],
                 'slug' => 'web-delta-sari-indah-dan-baru',
                 'type' => ProjectType::Personal->value,
                 'category' => 'Full-Stack Development',
@@ -51,7 +54,10 @@ class ProjectSeeder extends Seeder
             [
                 'id' => 'PRJ-002',
                 'profile_id' => $user->profile->id,
-                'title' => 'Curriculum Vitae API',
+                'title' => [
+                    'id' => 'Curriculum Vitae API',
+                    'en' => 'Curriculum Vitae API',
+                ],
                 'slug' => 'curriculum-vitae-api',
                 'type' => ProjectType::Personal->value,
                 'category' => 'Backend Development',
@@ -85,7 +91,10 @@ class ProjectSeeder extends Seeder
             [
                 'id' => 'PRJ-003',
                 'profile_id' => $user->profile->id,
-                'title' => 'Interactive Curriculum Vitae Web',
+                'title' => [
+                    'id' => 'Interactive Curriculum Vitae Web',
+                    'en' => 'Interactive Curriculum Vitae Web',
+                ],
                 'slug' => 'interactive-curriculum-vitae-web',
                 'type' => ProjectType::Personal->value,
                 'category' => 'Front-End Development',

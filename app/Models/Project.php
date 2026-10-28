@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property string $id
  * @property string $profile_id
  * @property string|null $portfolio_id
- * @property string $title
+ * @property array<string, string>|string $title
  * @property string $slug
  * @property ProjectType $type
  * @property string $category
@@ -74,6 +74,7 @@ class Project extends BaseAPI
     protected function casts(): array
     {
         return [
+            'title' => 'array',
             'type' => ProjectType::class,
             'description' => 'array',
             'status' => ProjectStatus::class,

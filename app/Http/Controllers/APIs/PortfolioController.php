@@ -69,10 +69,17 @@ class PortfolioController extends Controller implements HasMiddleware
         $baseCustomName = "IMG-{$idNum}_".time();
         $baseVideoName = "VID-{$idNum}_".time();
 
+        $titleForSlug = is_array($portfolioData['title'] ?? null)
+            ? ($portfolioData['title']['en'] ?? $portfolioData['title']['id'] ?? reset($portfolioData['title']) ?? '')
+            : ($portfolioData['title'] ?? '');
+
         $portfolioData['id'] = $customId;
-        $portfolioData['slug'] = ! empty($portfolioData['slug']) ? $portfolioData['slug'] : Str::slug($portfolioData['title']);
+        $portfolioData['slug'] = ! empty($portfolioData['slug']) ? $portfolioData['slug'] : Str::slug((string) $titleForSlug);
         $portfolioData['image'] = $this->uploadFile($request, 'image', Portfolio::STORAGE_PATH, null, 'public', $baseCustomName);
-        $portfolioData['gallery'] = $this->uploadFiles($request, 'gallery', Portfolio::STORAGE_PATH.'/gallery', [], 'public', $baseCustomName);
+        if (! $request->hasFile('image') && $request->filled('image')) {
+            $portfolioData['image'] = $request->input('image');
+        }
+        $portfolioData['gallery'] = $this->uploadFiles($request, 'gallery', Portfolio::STORAGE_PATH.'/gallery', [], 'public', $baseCustomName, 1, true);
 
         if ($request->hasFile('video')) {
             $portfolioData['video'] = $this->uploadFile($request, 'video', Portfolio::STORAGE_PATH.'/videos', null, 'public', $baseVideoName);

@@ -3,17 +3,28 @@
 namespace App\Http\Requests;
 
 use App\Models\Expertise;
+use App\Traits\NormalizesMultilingualFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreExpertiseRequest extends FormRequest
 {
+    use NormalizesMultilingualFields;
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
         return (bool) $this->user()?->can('create', Expertise::class);
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeMultilingualStore(['description']);
     }
 
     /**

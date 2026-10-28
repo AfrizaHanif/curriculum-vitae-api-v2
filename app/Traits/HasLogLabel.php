@@ -17,6 +17,12 @@ trait HasLogLabel
      */
     public function getLogLabel(): string
     {
-        return $this->name ?? $this->title ?? (string) $this->getKey();
+        $label = $this->getAttribute('name') ?? $this->getAttribute('title');
+
+        if (is_array($label)) {
+            $label = $label['en'] ?? $label['id'] ?? reset($label) ?: null;
+        }
+
+        return (string) ($label ?? $this->getKey());
     }
 }

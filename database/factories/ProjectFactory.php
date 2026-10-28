@@ -26,7 +26,10 @@ class ProjectFactory extends Factory
         return [
             'profile_id' => Profile::factory(),
             'portfolio_id' => null,
-            'title' => substr($title, 0, 100),
+            'title' => [
+                'id' => $title,
+                'en' => $title,
+            ],
             'slug' => Str::slug($title),
             'type' => fake()->randomElement(ProjectType::cases())->value,
             'category' => fake()->randomElement(['Full-Stack Development', 'Frontend Development', 'Backend Development']),

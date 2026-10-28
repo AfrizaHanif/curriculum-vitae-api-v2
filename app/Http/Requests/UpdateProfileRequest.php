@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Profile;
+use App\Traits\NormalizesMultilingualFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
@@ -11,6 +12,8 @@ use Illuminate\Validation\Rules\File;
 
 class UpdateProfileRequest extends FormRequest
 {
+    use NormalizesMultilingualFields;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -19,6 +22,18 @@ class UpdateProfileRequest extends FormRequest
         $profile = $this->route('profile');
 
         return (bool) $this->user()?->can('update', $profile);
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $profile = $this->route('profile');
+        $this->normalizeMultilingualUpdate(
+            ['tagline', 'description', 'philosophy'],
+            $profile instanceof Profile ? $profile : null
+        );
     }
 
     /**

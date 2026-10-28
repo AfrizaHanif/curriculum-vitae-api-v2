@@ -6,12 +6,15 @@ use App\Enums\EducationDegree;
 use App\Enums\EducationStatus;
 use App\Enums\EducationType;
 use App\Models\Education;
+use App\Traits\NormalizesMultilingualFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateEducationRequest extends FormRequest
 {
+    use NormalizesMultilingualFields;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -20,6 +23,18 @@ class UpdateEducationRequest extends FormRequest
         $education = $this->route('education');
 
         return (bool) $this->user()?->can('update', $education);
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $education = $this->route('education');
+        $this->normalizeMultilingualUpdate(
+            ['major', 'description'],
+            $education instanceof Education ? $education : null
+        );
     }
 
     /**
@@ -38,6 +53,12 @@ class UpdateEducationRequest extends FormRequest
             'major' => ['sometimes', 'required', function (string $attribute, mixed $value, \Closure $fail): void {
                 if (! is_string($value) && ! is_array($value)) {
                     $fail("The {$attribute} field must be a string or an array.");
+
+                    return;
+                }
+
+                if (is_array($value) && empty($value['id']) && empty($value['en'])) {
+                    $fail("The {$attribute} field must contain at least an 'id' or 'en' translation.");
                 }
             }],
             'gpa' => ['sometimes', 'nullable', 'numeric', 'min:0', Rule::when($this->filled('max_gpa'), ['lte:max_gpa'])],

@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -75,23 +76,36 @@ trait HandlesFileUploads
         array $oldPaths = [],
         string $disk = 'public',
         ?string $baseCustomFilename = null,
-        int $startIndex = 1
+        int $startIndex = 1,
+        bool $includeStringInputs = false
     ): array {
+        $paths = [];
+        $index = $startIndex;
+
         if ($request->hasFile($key)) {
-            $paths = [];
-            $index = $startIndex;
             $files = $request->file($key);
             $fileArray = is_array($files) ? $files : [$files];
 
             foreach ($fileArray as $file) {
-                $filename = $baseCustomFilename
-                    ? Str::slug($baseCustomFilename.'_'.sprintf('%03d', $index)).'.'.$file->extension()
-                    : $file->hashName();
-                $stored = $file->storeAs($folder, $filename, $disk);
-                $paths[] = $stored;
-                $index++;
+                if ($file instanceof UploadedFile) {
+                    $filename = $baseCustomFilename
+                        ? Str::slug($baseCustomFilename.'_'.sprintf('%03d', $index)).'.'.$file->extension()
+                        : $file->hashName();
+                    $stored = $file->storeAs($folder, $filename, $disk);
+                    $paths[] = $stored;
+                    $index++;
+                }
             }
+        }
 
+        $stringPaths = $includeStringInputs
+            ? array_values(array_filter(
+                (array) $request->input($key, []),
+                fn ($item) => is_string($item) && trim($item) !== ''
+            ))
+            : [];
+
+        if (! empty($paths) || ! empty($stringPaths)) {
             // Cleanup old files if new ones were successfully uploaded
             if (! empty($paths) && ! empty($oldPaths)) {
                 $cleanNewPaths = array_map(fn ($p) => ltrim($p, '/'), $paths);
@@ -103,7 +117,7 @@ trait HandlesFileUploads
                 }
             }
 
-            return $paths;
+            return array_merge($stringPaths, $paths);
         }
 
         return $oldPaths;
@@ -130,8 +144,13 @@ trait HandlesFileUploads
         string $disk = 'public',
         ?string $baseCustomFilename = null
     ): array {
-        if ($request->has($remainingKey) || $request->hasFile($key)) {
-            $remainingGallery = $request->input($remainingKey, []);
+        $hasRemaining = $request->has($remainingKey);
+        $rawRemaining = $hasRemaining
+            ? $request->input($remainingKey, [])
+            : array_values(array_filter((array) $request->input($key, []), fn ($item) => is_string($item)));
+
+        if ($hasRemaining || $request->has($key) || $request->hasFile($key)) {
+            $remainingGallery = $rawRemaining;
             if (is_string($remainingGallery)) {
                 $remainingGallery = json_decode($remainingGallery, true) ?? [];
             }
@@ -186,7 +205,8 @@ trait HandlesFileUploads
                 [],
                 $disk,
                 $baseCustomFilename,
-                count($remainingPaths) + 1
+                count($remainingPaths) + 1,
+                false
             );
 
             // Build final gallery array preserving relative paths

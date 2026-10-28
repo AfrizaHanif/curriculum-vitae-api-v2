@@ -5,18 +5,29 @@ namespace App\Http\Requests;
 use App\Enums\ExperienceStatus;
 use App\Enums\ExperienceType;
 use App\Models\Experience;
+use App\Traits\NormalizesMultilingualFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreExperienceRequest extends FormRequest
 {
+    use NormalizesMultilingualFields;
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
         return (bool) $this->user()?->can('create', Experience::class);
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeMultilingualStore(['description']);
     }
 
     /**
