@@ -26,6 +26,7 @@ updates:
           interval: "weekly"
       ignore:
           - dependency-name: "vite"
+          - dependency-name: "vite-plus"
       groups:
           npm-dependencies:
               patterns:
