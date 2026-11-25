@@ -3,6 +3,7 @@
 use App\Http\Controllers\APIs\AuthController;
 use App\Http\Controllers\APIs\CaseStudyController;
 use App\Http\Controllers\APIs\CertificateController;
+use App\Http\Controllers\APIs\ChatbotController;
 use App\Http\Controllers\APIs\EducationController;
 use App\Http\Controllers\APIs\ExperienceController;
 use App\Http\Controllers\APIs\ExpertiseController;
@@ -30,6 +31,9 @@ Route::get('/', function (): JsonResponse {
 });
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
+Route::post('/chatbot', [ChatbotController::class, 'send'])
+    ->middleware('throttle:20,1')
+    ->name('chatbot.send');
 
 Route::middleware('auth:sanctum')->group(function (): void {
     // Route::get('/user', fn (Request $request): UserResource => new UserResource($request->user()->loadMissing('profile')));
