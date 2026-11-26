@@ -66,6 +66,7 @@ class ProfileController extends Controller implements HasMiddleware
             $profile->casual_photo,
             'public',
             'profile_casual',
+            false,
         );
         $data['formal_photo'] = $this->uploadFile(
             $request,
@@ -74,6 +75,7 @@ class ProfileController extends Controller implements HasMiddleware
             $profile->formal_photo,
             'public',
             'profile_formal',
+            false,
         );
         $data['setup_image'] = $this->uploadFile(
             $request,
@@ -82,6 +84,7 @@ class ProfileController extends Controller implements HasMiddleware
             $profile->setup_image,
             'public',
             'profile_setup',
+            false,
         );
         $currentResume = is_array($profile->resume) ? $profile->resume : [];
 

@@ -267,3 +267,32 @@ test('profile resource transforms localized resume into storage urls', function 
         ->and($data['en'])->toContain('pdfs/CV_EN.pdf')
         ->and($data['id'])->toContain('pdfs/CV_ID.pdf');
 });
+
+test('profile photos preserve underscores in stored filenames on update', function () {
+    Storage::fake('public');
+
+    Sanctum::actingAs($this->user);
+
+    $response = $this->putJson("/api/profiles/{$this->profile->id}", [
+        'fullname' => $this->profile->fullname,
+        'phone' => $this->profile->phone,
+        'email' => $this->profile->email,
+        'birthday' => $this->profile->birthday->format('Y-m-d'),
+        'status' => $this->profile->status,
+        'casual_photo' => UploadedFile::fake()->image('casual.jpg'),
+        'formal_photo' => UploadedFile::fake()->image('formal.jpg'),
+        'setup_image' => UploadedFile::fake()->image('setup.png'),
+    ]);
+
+    $response->assertOk();
+
+    $this->profile->refresh();
+
+    expect($this->profile->casual_photo)->toBe('images/profile_casual.jpg')
+        ->and($this->profile->formal_photo)->toBe('images/profile_formal.jpg')
+        ->and($this->profile->setup_image)->toBe('images/profile_setup.png');
+
+    Storage::disk('public')->assertExists('images/profile_casual.jpg');
+    Storage::disk('public')->assertExists('images/profile_formal.jpg');
+    Storage::disk('public')->assertExists('images/profile_setup.png');
+});
