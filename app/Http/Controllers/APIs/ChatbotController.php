@@ -108,7 +108,7 @@ class ChatbotController extends Controller
     public function context(): JsonResponse
     {
         return response()->json([
-            'context' => $this->buildCvContext(),
+            'context' => explode("\n", str_replace(["\r\n", "\r"], "\n", $this->buildCvContext())),
         ]);
     }
 

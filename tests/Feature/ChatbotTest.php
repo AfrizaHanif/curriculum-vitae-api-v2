@@ -229,3 +229,20 @@ test('chatbot validates messages payload', function () {
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['messages.0.role', 'messages.0.content']);
 });
+
+test('chatbot context endpoint returns context as separate lines in json', function () {
+    Profile::factory()->create([
+        'fullname' => 'Afriza Hanif',
+        'tagline' => 'Fullstack Laravel Developer',
+    ]);
+
+    $response = $this->getJson('/api/chatbot/context');
+
+    $response->assertOk()
+        ->assertJsonPath('context.0', 'Name: Afriza Hanif')
+        ->assertJsonPath('context.1', 'Tagline: Fullstack Laravel Developer');
+
+    $lines = $response->json('context');
+    expect($lines)->toBeArray();
+    expect(collect($lines)->every(fn (string $line): bool => ! str_contains($line, "\n")))->toBeTrue();
+});
