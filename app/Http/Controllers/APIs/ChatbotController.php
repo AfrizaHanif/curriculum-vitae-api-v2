@@ -16,6 +16,7 @@ use App\Models\Skill;
 use App\Models\Social;
 use App\Models\Testimonial;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -32,22 +33,23 @@ class ChatbotController extends Controller
             'messages.*.content' => ['required', 'string', 'max:2000'],
         ]);
 
-        // Mapping role "assistant" -> "model" untuk Gemini
-        $contents = collect($validated['messages'])
+        /** @var list<array{role: string, content: string}> $messages */
+        $messages = collect($validated['messages'])
             ->filter(fn (array $m): bool => $m['role'] !== 'system')
             ->take(-10)
             ->map(fn (array $m): array => [
-                'role' => $m['role'] === 'assistant' ? 'model' : 'user',
-                'parts' => [['text' => $m['content']]],
+                'role' => $m['role'],
+                'content' => $m['content'],
             ])
             ->values()
             ->all();
 
-        $apiKey = config('services.gemini.key');
+        $geminiKey = config('services.gemini.key');
+        $groqKey = config('services.groq.key');
 
-        if (empty($apiKey)) {
+        if (empty($geminiKey) && empty($groqKey)) {
             return response()->json([
-                'error' => 'Gemini API key is not configured.',
+                'error' => 'AI service is not configured.',
             ], 500);
         }
 
@@ -56,53 +58,142 @@ class ChatbotController extends Controller
             ."If a question cannot be answered from the data, say you don't have that information.\n\n"
             .$this->buildCvContext();
 
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={$apiKey}";
+        $lastStatus = 500;
 
-        try {
-            $response = Http::timeout(15)->post($url, [
+        if (! empty($geminiKey)) {
+            $geminiResult = $this->callGemini((string) $geminiKey, $systemInstruction, $messages);
+
+            if ($geminiResult['ok']) {
+                return response()->json(['reply' => $geminiResult['reply'] ?? '']);
+            }
+
+            $lastStatus = $geminiResult['status'];
+        }
+
+        if (! empty($groqKey)) {
+            $groqResult = $this->callGroq((string) $groqKey, $systemInstruction, $messages);
+
+            if ($groqResult['ok']) {
+                return response()->json(['reply' => $groqResult['reply'] ?? '']);
+            }
+
+            $lastStatus = $groqResult['status'];
+        }
+
+        return $this->errorResponse($lastStatus);
+    }
+
+    /**
+     * Send the conversation to Gemini as the primary provider.
+     *
+     * @param  list<array{role: string, content: string}>  $messages
+     * @return array{ok: bool, reply: ?string, status: int}
+     */
+    private function callGemini(string $apiKey, string $systemInstruction, array $messages): array
+    {
+        // Map "assistant" -> "model" for Gemini's generateContent API
+        $contents = array_map(fn (array $m): array => [
+            'role' => $m['role'] === 'assistant' ? 'model' : 'user',
+            'parts' => [['text' => $m['content']]],
+        ], $messages);
+
+        $model = (string) config('services.gemini.model', 'gemini-3.8-flash');
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+        return $this->executeProviderRequest(
+            'Gemini',
+            fn (): Response => Http::connectTimeout(5)->timeout(10)->post($url, [
                 'systemInstruction' => [
                     'parts' => [['text' => $systemInstruction]],
                 ],
                 'contents' => $contents,
-            ]);
+            ]),
+            fn (Response $response): string => (string) ($response->json('candidates.0.content.parts.0.text') ?? ''),
+        );
+    }
+
+    /**
+     * Send the conversation to Groq as the fallback provider.
+     *
+     * @param  list<array{role: string, content: string}>  $messages
+     * @return array{ok: bool, reply: ?string, status: int}
+     */
+    private function callGroq(string $apiKey, string $systemInstruction, array $messages): array
+    {
+        $groqMessages = [
+            ['role' => 'system', 'content' => $systemInstruction],
+            ...$messages,
+        ];
+
+        $model = (string) config('services.groq.model', 'llama-3.3-70b-versatile');
+
+        return $this->executeProviderRequest(
+            'Groq',
+            fn (): Response => Http::withToken($apiKey)
+                ->connectTimeout(5)
+                ->timeout(12)
+                ->post('https://api.groq.com/openai/v1/chat/completions', [
+                    'model' => $model,
+                    'messages' => $groqMessages,
+                ]),
+            fn (Response $response): string => (string) ($response->json('choices.0.message.content') ?? ''),
+        );
+    }
+
+    /**
+     * Execute an outbound AI provider request with uniform error logging.
+     *
+     * @param  callable(): Response  $request
+     * @param  callable(Response): string  $extractReply
+     * @return array{ok: bool, reply: ?string, status: int}
+     */
+    private function executeProviderRequest(string $provider, callable $request, callable $extractReply): array
+    {
+        try {
+            $response = $request();
         } catch (ConnectionException $exception) {
-            Log::warning('Gemini API connection failed.', [
+            Log::warning("{$provider} API connection failed.", [
                 'message' => $exception->getMessage(),
             ]);
 
-            return response()->json([
-                'error' => 'The AI service is experiencing high traffic. Please try again shortly.',
-            ], 503);
+            return ['ok' => false, 'reply' => null, 'status' => 503];
         }
 
         if ($response->failed()) {
             $status = $response->status();
 
-            Log::warning('Gemini API request failed.', [
+            Log::warning("{$provider} API request failed.", [
                 'status' => $status,
                 'message' => $response->json('error.message'),
             ]);
 
-            if ($status === 429) {
-                return response()->json([
-                    'error' => 'The AI assistant is currently busy or has reached its usage limit. Please try again later.',
-                ], 429);
-            }
-
-            if ($response->serverError()) {
-                return response()->json([
-                    'error' => 'The AI service is experiencing high traffic. Please try again shortly.',
-                ], 503);
-            }
-
-            return response()->json([
-                'error' => 'Unable to process your request right now. Please try again later.',
-            ], 500);
+            return ['ok' => false, 'reply' => null, 'status' => $status];
         }
 
-        $reply = $response->json('candidates.0.content.parts.0.text') ?? '';
+        return [
+            'ok' => true,
+            'reply' => $extractReply($response),
+            'status' => 200,
+        ];
+    }
 
-        return response()->json(['reply' => $reply]);
+    private function errorResponse(int $status): JsonResponse
+    {
+        if ($status === 429) {
+            return response()->json([
+                'error' => 'The AI assistant is currently busy or has reached its usage limit. Please try again later.',
+            ], 429);
+        }
+
+        if ($status >= 500) {
+            return response()->json([
+                'error' => 'The AI service is experiencing high traffic. Please try again shortly.',
+            ], 503);
+        }
+
+        return response()->json([
+            'error' => 'Unable to process your request right now. Please try again later.',
+        ], 500);
     }
 
     public function context(): JsonResponse

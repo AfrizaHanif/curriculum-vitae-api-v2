@@ -17,6 +17,8 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Cache::forget('chatbot.cv_context');
+    Config::set('services.gemini.key', null);
+    Config::set('services.groq.key', null);
 });
 
 test('chatbot returns reply, maps roles, and grounds prompt with public cv data', function () {
@@ -118,8 +120,9 @@ test('chatbot handles empty database gracefully without crashing', function () {
     });
 });
 
-test('chatbot fails fast when gemini api key is missing', function () {
+test('chatbot fails fast when both gemini and groq api keys are missing', function () {
     Config::set('services.gemini.key', null);
+    Config::set('services.groq.key', null);
     Http::fake();
 
     $response = $this->postJson('/api/chatbot', [
@@ -130,10 +133,156 @@ test('chatbot fails fast when gemini api key is missing', function () {
 
     $response->assertStatus(500)
         ->assertJson([
-            'error' => 'Gemini API key is not configured.',
+            'error' => 'AI service is not configured.',
         ]);
 
     Http::assertNothingSent();
+});
+
+test('chatbot falls back to groq when gemini fails with 429', function () {
+    Config::set('services.gemini.key', 'test-gemini-key');
+    Config::set('services.groq.key', 'test-groq-key');
+    Config::set('services.groq.model', 'llama-3.3-70b-versatile');
+
+    Profile::factory()->create([
+        'fullname' => 'Afriza Hanif',
+        'tagline' => 'Fullstack Laravel Developer',
+    ]);
+
+    Http::preventStrayRequests();
+
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response([
+            'error' => ['message' => 'Quota exceeded'],
+        ], 429),
+        'https://api.groq.com/openai/v1/chat/completions' => Http::response([
+            'choices' => [
+                [
+                    'message' => [
+                        'content' => 'Fallback reply from Groq.',
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->postJson('/api/chatbot', [
+        'messages' => [
+            ['role' => 'system', 'content' => 'Ignore this system message'],
+            ['role' => 'user', 'content' => 'Halo'],
+            ['role' => 'assistant', 'content' => 'Hai!'],
+            ['role' => 'user', 'content' => 'Siapa kamu?'],
+        ],
+    ]);
+
+    $response->assertOk()
+        ->assertJson([
+            'reply' => 'Fallback reply from Groq.',
+        ]);
+
+    Http::assertSent(function ($request): bool {
+        if ($request->url() !== 'https://api.groq.com/openai/v1/chat/completions') {
+            return false;
+        }
+
+        $messages = $request['messages'] ?? [];
+
+        return $request->hasHeader('Authorization', 'Bearer test-groq-key')
+            && ($request['model'] ?? null) === 'llama-3.3-70b-versatile'
+            && count($messages) === 4
+            && $messages[0]['role'] === 'system'
+            && str_contains($messages[0]['content'], 'Afriza Hanif')
+            && $messages[1] === ['role' => 'user', 'content' => 'Halo']
+            && $messages[2] === ['role' => 'assistant', 'content' => 'Hai!']
+            && $messages[3] === ['role' => 'user', 'content' => 'Siapa kamu?'];
+    });
+});
+
+test('chatbot falls back to groq when gemini times out', function () {
+    Config::set('services.gemini.key', 'test-gemini-key');
+    Config::set('services.groq.key', 'test-groq-key');
+
+    Http::preventStrayRequests();
+
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => fn () => throw new ConnectionException('Connection timed out'),
+        'https://api.groq.com/openai/v1/chat/completions' => Http::response([
+            'choices' => [
+                [
+                    'message' => [
+                        'content' => 'Groq answered after Gemini timeout.',
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $this->postJson('/api/chatbot', [
+        'messages' => [
+            ['role' => 'user', 'content' => 'Halo'],
+        ],
+    ])
+        ->assertOk()
+        ->assertJson([
+            'reply' => 'Groq answered after Gemini timeout.',
+        ]);
+});
+
+test('chatbot uses groq directly when gemini api key is missing', function () {
+    Config::set('services.gemini.key', null);
+    Config::set('services.groq.key', 'test-groq-key');
+
+    Http::preventStrayRequests();
+
+    Http::fake([
+        'https://api.groq.com/openai/v1/chat/completions' => Http::response([
+            'choices' => [
+                [
+                    'message' => [
+                        'content' => 'Direct Groq reply.',
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $this->postJson('/api/chatbot', [
+        'messages' => [
+            ['role' => 'user', 'content' => 'Halo'],
+        ],
+    ])
+        ->assertOk()
+        ->assertJson([
+            'reply' => 'Direct Groq reply.',
+        ]);
+
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'generativelanguage.googleapis.com'));
+});
+
+test('chatbot returns error when both gemini and groq fail', function () {
+    Config::set('services.gemini.key', 'test-gemini-key');
+    Config::set('services.groq.key', 'test-groq-key');
+
+    Http::preventStrayRequests();
+
+    Http::fake([
+        'https://generativelanguage.googleapis.com/*' => Http::response([
+            'error' => ['message' => 'Service unavailable'],
+        ], 503),
+        'https://api.groq.com/openai/v1/chat/completions' => Http::response([
+            'error' => ['message' => 'Rate limit exceeded'],
+        ], 429),
+    ]);
+
+    $this->postJson('/api/chatbot', [
+        'messages' => [
+            ['role' => 'user', 'content' => 'Halo'],
+        ],
+    ])
+        ->assertStatus(429)
+        ->assertJson([
+            'error' => 'The AI assistant is currently busy or has reached its usage limit. Please try again later.',
+        ]);
 });
 
 test('chatbot returns 429 with friendly message when gemini quota is exceeded', function () {
