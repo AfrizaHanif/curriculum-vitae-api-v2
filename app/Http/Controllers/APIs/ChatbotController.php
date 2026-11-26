@@ -34,9 +34,9 @@ class ChatbotController extends Controller
 
         // Mapping role "assistant" -> "model" untuk Gemini
         $contents = collect($validated['messages'])
-            ->filter(fn (array $m): bool => $m['role'] !== 'system')
+            ->filter(fn(array $m): bool => $m['role'] !== 'system')
             ->take(-10)
-            ->map(fn (array $m): array => [
+            ->map(fn(array $m): array => [
                 'role' => $m['role'] === 'assistant' ? 'model' : 'user',
                 'parts' => [['text' => $m['content']]],
             ])
@@ -52,9 +52,9 @@ class ChatbotController extends Controller
         }
 
         $systemInstruction = 'You are the official AI assistant for this portfolio website. '
-            ."Answer concisely, politely, in the same language as the user's message, and ONLY using the CV data below. "
-            ."If a question cannot be answered from the data, say you don't have that information.\n\n"
-            .$this->buildCvContext();
+            . "Answer concisely, politely, in the same language as the user's message, and ONLY using the CV data below. "
+            . "If a question cannot be answered from the data, say you don't have that information.\n\n"
+            . $this->buildCvContext();
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={$apiKey}";
 
@@ -105,6 +105,13 @@ class ChatbotController extends Controller
         return response()->json(['reply' => $reply]);
     }
 
+    public function context(): JsonResponse
+    {
+        return response()->json([
+            'context' => $this->buildCvContext(),
+        ]);
+    }
+
     private function buildCvContext(): string
     {
         return Cache::remember('chatbot.cv_context', now()->addMinutes(30), function (): string {
@@ -124,28 +131,28 @@ class ChatbotController extends Controller
                 ->map(function (Setup $stp): string {
                     $reason = $this->flattenMultilingual($stp->reason);
 
-                    return "- {$stp->name} ({$stp->category}): {$stp->description}".($reason !== '' ? " | Reason: {$reason}" : '');
+                    return "- {$stp->name} ({$stp->category}): {$stp->description}" . ($reason !== '' ? " | Reason: {$reason}" : '');
                 })
                 ->implode("\n");
 
             $certificates = Certificate::query()
                 ->latest('issued_date')
                 ->get()
-                ->map(fn (Certificate $cert): string => "- {$cert->title}"
-                    .($cert->issuer ? " by {$cert->issuer}" : '')
-                    .($cert->issued_date ? " ({$cert->issued_date->format('Y-m')})" : ''))
+                ->map(fn(Certificate $cert): string => "- {$cert->title}"
+                    . ($cert->issuer ? " by {$cert->issuer}" : '')
+                    . ($cert->issued_date ? " ({$cert->issued_date->format('Y-m')})" : ''))
                 ->implode("\n");
 
             $testimonials = Testimonial::query()
                 ->latest()
                 ->take(10)
                 ->get()
-                ->map(fn (Testimonial $testimonial): string => "- {$testimonial->name} ({$testimonial->role}): \"{$testimonial->content}\"")
+                ->map(fn(Testimonial $testimonial): string => "- {$testimonial->name} ({$testimonial->role}): \"{$testimonial->content}\"")
                 ->implode("\n");
 
             $socials = Social::query()
                 ->get()
-                ->map(fn (Social $social): string => "- {$social->name}: {$social->url}")
+                ->map(fn(Social $social): string => "- {$social->name}: {$social->url}")
                 ->implode("\n");
 
             $expertises = Expertise::query()
@@ -153,7 +160,7 @@ class ChatbotController extends Controller
                 ->map(function (Expertise $expertise): string {
                     $description = $this->flattenMultilingual($expertise->description);
 
-                    return "- {$expertise->title}".($description !== '' ? ": {$description}" : '');
+                    return "- {$expertise->title}" . ($description !== '' ? ": {$description}" : '');
                 })
                 ->implode("\n");
 
@@ -164,13 +171,13 @@ class ChatbotController extends Controller
             $educations = Education::query()
                 ->latest('start_period')
                 ->get()
-                ->map(fn (Education $edu): string => "- {$edu->institution} ({$edu->start_period?->format('Y-m')} - ".($edu->finish_period?->format('Y-m') ?? 'Present').')')
+                ->map(fn(Education $edu): string => "- {$edu->institution} ({$edu->start_period?->format('Y-m')} - " . ($edu->finish_period?->format('Y-m') ?? 'Present') . ')')
                 ->implode("\n");
 
             $experiences = Experience::query()
                 ->latest('start_period')
                 ->get()
-                ->map(fn (Experience $exp): string => "- {$exp->title} at {$exp->company} ({$exp->start_period?->format('Y-m')} - ".($exp->finish_period?->format('Y-m') ?? 'Present').')')
+                ->map(fn(Experience $exp): string => "- {$exp->title} at {$exp->company} ({$exp->start_period?->format('Y-m')} - " . ($exp->finish_period?->format('Y-m') ?? 'Present') . ')')
                 ->implode("\n");
 
             $portfolios = Portfolio::query()
@@ -182,8 +189,8 @@ class ChatbotController extends Controller
                     $tech = is_array($portfolio->technology) ? implode(', ', $portfolio->technology) : '';
 
                     return "- {$title} ({$portfolio->category})"
-                        .($tech !== '' ? " | Tech: {$tech}" : '')
-                        .($portfolio->demo_url ? " | Demo: {$portfolio->demo_url}" : '');
+                        . ($tech !== '' ? " | Tech: {$tech}" : '')
+                        . ($portfolio->demo_url ? " | Demo: {$portfolio->demo_url}" : '');
                 })
                 ->implode("\n");
 
@@ -196,7 +203,7 @@ class ChatbotController extends Controller
                     $title = $this->flattenMultilingual($project->title);
                     $tech = is_array($project->technology) ? implode(', ', $project->technology) : '';
 
-                    return "- {$title} ({$project->category})".($tech !== '' ? " | Tech: {$tech}" : '');
+                    return "- {$title} ({$project->category})" . ($tech !== '' ? " | Tech: {$tech}" : '');
                 })
                 ->implode("\n");
 

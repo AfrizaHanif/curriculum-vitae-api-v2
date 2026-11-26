@@ -31,6 +31,8 @@ Route::get('/', function (): JsonResponse {
 });
 
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
+
+Route::get('/chatbot/context', [ChatbotController::class, 'context']);
 Route::post('/chatbot', [ChatbotController::class, 'send'])
     ->middleware('throttle:20,1')
     ->name('chatbot.send');
