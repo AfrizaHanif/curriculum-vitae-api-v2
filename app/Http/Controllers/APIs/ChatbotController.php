@@ -64,7 +64,7 @@ class ChatbotController extends Controller
             $geminiResult = $this->callGemini((string) $geminiKey, $systemInstruction, $messages);
 
             if ($geminiResult['ok']) {
-                return response()->json(['reply' => $geminiResult['reply'] ?? '']);
+                return $this->successResponse($geminiResult);
             }
 
             $lastStatus = $geminiResult['status'];
@@ -74,7 +74,7 @@ class ChatbotController extends Controller
             $groqResult = $this->callGroq((string) $groqKey, $systemInstruction, $messages);
 
             if ($groqResult['ok']) {
-                return response()->json(['reply' => $groqResult['reply'] ?? '']);
+                return $this->successResponse($groqResult);
             }
 
             $lastStatus = $groqResult['status'];
@@ -87,7 +87,7 @@ class ChatbotController extends Controller
      * Send the conversation to Gemini as the primary provider.
      *
      * @param  list<array{role: string, content: string}>  $messages
-     * @return array{ok: bool, reply: ?string, status: int}
+     * @return array{ok: bool, reply: ?string, provider: string, model: string, status: int}
      */
     private function callGemini(string $apiKey, string $systemInstruction, array $messages): array
     {
@@ -102,7 +102,8 @@ class ChatbotController extends Controller
 
         return $this->executeProviderRequest(
             'Gemini',
-            fn (): Response => Http::connectTimeout(5)->timeout(10)->post($url, [
+            $model,
+            fn (): Response => Http::connectTimeout(5)->timeout(20)->post($url, [
                 'systemInstruction' => [
                     'parts' => [['text' => $systemInstruction]],
                 ],
@@ -116,7 +117,7 @@ class ChatbotController extends Controller
      * Send the conversation to Groq as the fallback provider.
      *
      * @param  list<array{role: string, content: string}>  $messages
-     * @return array{ok: bool, reply: ?string, status: int}
+     * @return array{ok: bool, reply: ?string, provider: string, model: string, status: int}
      */
     private function callGroq(string $apiKey, string $systemInstruction, array $messages): array
     {
@@ -125,13 +126,14 @@ class ChatbotController extends Controller
             ...$messages,
         ];
 
-        $model = (string) config('services.groq.model', 'llama-3.3-70b-versatile');
+        $model = (string) config('services.groq.model', 'openai/gpt-oss-20b');
 
         return $this->executeProviderRequest(
             'Groq',
+            $model,
             fn (): Response => Http::withToken($apiKey)
                 ->connectTimeout(5)
-                ->timeout(12)
+                ->timeout(20)
                 ->post('https://api.groq.com/openai/v1/chat/completions', [
                     'model' => $model,
                     'messages' => $groqMessages,
@@ -145,10 +147,12 @@ class ChatbotController extends Controller
      *
      * @param  callable(): Response  $request
      * @param  callable(Response): string  $extractReply
-     * @return array{ok: bool, reply: ?string, status: int}
+     * @return array{ok: bool, reply: ?string, provider: string, model: string, status: int}
      */
-    private function executeProviderRequest(string $provider, callable $request, callable $extractReply): array
+    private function executeProviderRequest(string $provider, string $model, callable $request, callable $extractReply): array
     {
+        $providerKey = strtolower($provider);
+
         try {
             $response = $request();
         } catch (ConnectionException $exception) {
@@ -156,7 +160,7 @@ class ChatbotController extends Controller
                 'message' => $exception->getMessage(),
             ]);
 
-            return ['ok' => false, 'reply' => null, 'status' => 503];
+            return ['ok' => false, 'reply' => null, 'provider' => $providerKey, 'model' => $model, 'status' => 503];
         }
 
         if ($response->failed()) {
@@ -164,17 +168,32 @@ class ChatbotController extends Controller
 
             Log::warning("{$provider} API request failed.", [
                 'status' => $status,
-                'message' => $response->json('error.message'),
+                'message' => $response->json('error.message') ?? $response->body(),
             ]);
 
-            return ['ok' => false, 'reply' => null, 'status' => $status];
+            return ['ok' => false, 'reply' => null, 'provider' => $providerKey, 'model' => $model, 'status' => $status];
         }
 
         return [
             'ok' => true,
             'reply' => $extractReply($response),
+            'provider' => $providerKey,
+            'model' => $model,
             'status' => 200,
         ];
+    }
+
+    /**
+     * @param  array{ok: bool, reply: ?string, provider: string, model: string, status: int}  $result
+     */
+    private function successResponse(array $result): JsonResponse
+    {
+        return response()->json([
+            'reply' => $result['reply'] ?? '',
+            'provider' => $result['provider'],
+            'model' => $result['model'],
+            'timestamp' => now()->toIso8601String(),
+        ]);
     }
 
     private function errorResponse(int $status): JsonResponse

@@ -71,7 +71,10 @@ test('chatbot returns reply, maps roles, and grounds prompt with public cv data'
     $response->assertOk()
         ->assertJson([
             'reply' => 'Afriza is a Fullstack Laravel Developer.',
-        ]);
+            'provider' => 'gemini',
+            'model' => config('services.gemini.model'),
+        ])
+        ->assertJsonStructure(['reply', 'provider', 'model', 'timestamp']);
 
     Http::assertSent(function ($request): bool {
         $contents = $request['contents'] ?? [];
@@ -178,7 +181,10 @@ test('chatbot falls back to groq when gemini fails with 429', function () {
     $response->assertOk()
         ->assertJson([
             'reply' => 'Fallback reply from Groq.',
-        ]);
+            'provider' => 'groq',
+            'model' => 'llama-3.3-70b-versatile',
+        ])
+        ->assertJsonStructure(['reply', 'provider', 'model', 'timestamp']);
 
     Http::assertSent(function ($request): bool {
         if ($request->url() !== 'https://api.groq.com/openai/v1/chat/completions') {
